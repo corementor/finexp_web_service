@@ -1,0 +1,20 @@
+<div class="flex flex-col h-screen overflow-hidden">
+  <!-- Fixed Header -->
+  <app-header class="flex-none"></app-header>
+
+  <!-- Main Content Area with fixed sidebar -->
+  <div class="flex flex-1 overflow-hidden pt-16">
+    <!-- Fixed Sidebar -->
+    <app-sidebar *ngIf="showSidebar" class="hidden lg:block flex-none h-full"></app-sidebar>
+
+    <!-- Scrollable Main Content -->
+    <main class="flex-1 overflow-y-auto bg-gray-50">
+      <div class="p-6 pb-24">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+
+  <!-- Fixed Footer -->
+  <app-footer class="flex-none"></app-footer>
+</div>

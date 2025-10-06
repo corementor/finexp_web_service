@@ -1,0 +1,159 @@
+<header class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md h-16">
+  <nav class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center space-x-3">
+        <div
+          class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center"
+        >
+          <span class="text-white font-bold text-xl">💰</span>
+        </div>
+        <div>
+          <span class="text-xl font-bold text-gray-800">FinExp</span>
+          <p class="text-xs text-gray-500">Inventory Management</p>
+        </div>
+      </div>
+
+      <!-- Search Bar - Desktop -->
+      <div class="hidden md:flex flex-1 max-w-md mx-8">
+        <div class="relative w-full">
+          <input
+            type="text"
+            placeholder="Search inventory, products..."
+            class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+          <svg
+            class="w-5 h-5 text-gray-400 absolute left-3 top-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Right Side Actions -->
+      <div class="flex items-center space-x-4">
+        <!-- Notifications -->
+        <div class="relative hidden md:block">
+          <button
+            (click)="toggleNotifications()"
+            class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+            <span
+              *ngIf="notifications > 0"
+              class="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"
+            >
+              {{ notifications }}
+            </span>
+          </button>
+
+          <!-- Notifications Dropdown -->
+          <div
+            *ngIf="isNotificationsOpen"
+            class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200"
+          >
+            <div class="p-4 border-b">
+              <h3 class="font-semibold text-gray-800">Notifications</h3>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+              <div class="p-4 hover:bg-gray-50 border-b cursor-pointer">
+                <p class="text-sm font-medium text-gray-800">Low Stock Alert</p>
+                <p class="text-xs text-gray-600">iPhone 15 Pro - Only 5 units left</p>
+                <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+              </div>
+              <div class="p-4 hover:bg-gray-50 border-b cursor-pointer">
+                <p class="text-sm font-medium text-gray-800">New Purchase Order</p>
+                <p class="text-xs text-gray-600">PO-2024-001 received</p>
+                <p class="text-xs text-gray-400 mt-1">5 hours ago</p>
+              </div>
+              <div class="p-4 hover:bg-gray-50 cursor-pointer">
+                <p class="text-sm font-medium text-gray-800">Expired Products</p>
+                <p class="text-xs text-gray-600">3 products expiring this week</p>
+                <p class="text-xs text-gray-400 mt-1">1 day ago</p>
+              </div>
+            </div>
+            <div class="p-3 border-t text-center">
+              <a href="#" class="text-sm text-green-600 hover:text-green-700"
+                >View all notifications</a
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- User Profile -->
+        <div class="hidden md:flex items-center space-x-3 border-l pl-4">
+          <div class="text-right">
+            <p class="text-sm font-medium text-gray-800">Admin User</p>
+            <p class="text-xs text-gray-500">Manager</p>
+          </div>
+          <div
+            class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold"
+          >
+            AU
+          </div>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button
+          (click)="toggleMenu()"
+          class="md:hidden text-gray-600 hover:text-green-600 focus:outline-none"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              *ngIf="!isMenuOpen"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+            <path
+              *ngIf="isMenuOpen"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Search & Menu -->
+    <div *ngIf="isMenuOpen" class="md:hidden mt-4 pb-4 border-t pt-4 space-y-4">
+      <input
+        type="text"
+        placeholder="Search inventory..."
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+      />
+
+      <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold"
+          >
+            AU
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-800">Admin User</p>
+            <p class="text-xs text-gray-500">Manager</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>

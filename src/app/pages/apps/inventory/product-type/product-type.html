@@ -1,0 +1,304 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-5">
+    <h1 class="text-2xl font-semibold text-gray-900">Product Type Management</h1>
+    <button
+      (click)="openModal()"
+      class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+    >
+      Add New Product Type
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center my-8">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+  </div>
+
+  <!-- Product Types List -->
+  <div class="bg-white rounded-lg shadow overflow-hidden" *ngIf="!loading">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Code
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Name
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Description
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Size
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Unit Price
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Sell Price
+          </th>
+          <th
+            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let type of productTypes">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ type.productCode }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ type.productName }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ type.description }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ type.size }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {{ type.unitPrice | currency }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {{ type.sellUnitPrice | currency }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button
+              (click)="openModal(type)"
+              class="text-indigo-600 hover:text-indigo-900 mr-3 inline-flex items-center"
+            >
+              <i class="fas fa-edit mr-1"></i>
+              <span>Edit</span>
+            </button>
+            <button
+              (click)="deleteProductType(type)"
+              class="text-red-600 hover:text-red-900 inline-flex items-center"
+            >
+              <i class="fas fa-trash-alt mr-1"></i>
+              <span>Delete</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div
+    *ngIf="showModal"
+    class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 transition-all duration-200"
+  >
+    <div class="relative top-20 mx-auto p-0 border w-[500px] shadow-xl rounded-lg bg-white/95">
+      <!-- Modal Header -->
+      <div class="bg-white/80 backdrop-blur-sm px-6 py-4 rounded-t-lg border-b">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xl font-semibold text-gray-900">
+            {{ isEditing ? 'Edit' : 'Add New' }} Product Type
+          </h3>
+          <button
+            (click)="closeModal()"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6">
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="space-y-5">
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Product Name -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Product Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="productName"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter product name"
+                [class.border-red-300]="
+                  productForm.get('productName')?.invalid && productForm.get('productName')?.touched
+                "
+              />
+              <p
+                *ngIf="
+                  productForm.get('productName')?.invalid && productForm.get('productName')?.touched
+                "
+                class="mt-1 text-sm text-red-500"
+              >
+                Product name is required
+              </p>
+            </div>
+
+            <!-- Description -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                formControlName="description"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter product description"
+              ></textarea>
+            </div>
+
+            <!-- Size -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Size <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="size"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+                [class.border-red-300]="
+                  productForm.get('size')?.invalid && productForm.get('size')?.touched
+                "
+              />
+              <p
+                *ngIf="productForm.get('size')?.invalid && productForm.get('size')?.touched"
+                class="mt-1 text-sm text-red-500"
+              >
+                Size must be greater than 0
+              </p>
+            </div>
+
+            <!-- Unit Price -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Unit Price <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"
+                  >$</span
+                >
+                <input
+                  type="number"
+                  formControlName="unitPrice"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0.00"
+                  step="0.01"
+                  [class.border-red-300]="
+                    productForm.get('unitPrice')?.invalid && productForm.get('unitPrice')?.touched
+                  "
+                />
+              </div>
+              <p
+                *ngIf="
+                  productForm.get('unitPrice')?.invalid && productForm.get('unitPrice')?.touched
+                "
+                class="mt-1 text-sm text-red-500"
+              >
+                Unit price must be greater than 0
+              </p>
+            </div>
+
+            <!-- Sell Unit Price -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Sell Unit Price <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"
+                  >$</span
+                >
+                <input
+                  type="number"
+                  formControlName="sellUnitPrice"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0.00"
+                  step="0.01"
+                  [class.border-red-300]="
+                    productForm.get('sellUnitPrice')?.invalid &&
+                    productForm.get('sellUnitPrice')?.touched
+                  "
+                />
+              </div>
+              <p
+                *ngIf="
+                  productForm.get('sellUnitPrice')?.invalid &&
+                  productForm.get('sellUnitPrice')?.touched
+                "
+                class="mt-1 text-sm text-red-500"
+              >
+                Sell unit price must be greater than 0
+              </p>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="px-4 py-2 border text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              [disabled]="!productForm.valid || loading"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+            >
+              <i *ngIf="loading" class="fas fa-spinner fa-spin mr-2"></i>
+              {{ isEditing ? 'Update' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div
+    *ngIf="showDeleteModal"
+    class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 transition-all duration-200"
+  >
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-xl rounded-md bg-white/95">
+      <div class="mt-3 text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+          <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+        </div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Confirm Delete</h3>
+        <div class="mt-2 px-7 py-3">
+          <p class="text-sm text-gray-500">Are you sure you want to delete this product type?</p>
+          <!-- Product Details -->
+          <div class="mt-4 bg-gray-50 p-3 rounded-lg text-left">
+            <p class="text-sm font-medium text-gray-900">{{ productToDelete?.productName }}</p>
+            <p class="text-xs text-gray-500 mt-1">Code: {{ productToDelete?.productCode }}</p>
+            <p class="text-xs text-gray-500">Size: {{ productToDelete?.size }}</p>
+            <p class="text-xs text-gray-500">
+              Unit Price: {{ productToDelete?.unitPrice | currency }}
+            </p>
+          </div>
+          <p class="text-xs text-red-500 mt-4">This action cannot be undone.</p>
+        </div>
+        <div class="flex justify-center gap-4 mt-4">
+          <button
+            (click)="closeDeleteModal()"
+            class="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            Cancel
+          </button>
+          <button
+            (click)="confirmDelete()"
+            [disabled]="loading"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center justify-center min-w-[80px]"
+          >
+            <i *ngIf="loading" class="fas fa-spinner fa-spin mr-2"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

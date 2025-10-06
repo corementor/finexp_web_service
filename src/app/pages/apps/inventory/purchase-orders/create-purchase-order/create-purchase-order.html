@@ -1,0 +1,221 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Create Purchase Order</h1>
+      <p class="mt-2 text-sm text-gray-600">
+        Add items to your purchase order and submit when ready.
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="purchaseOrderForm" (ngSubmit)="onSubmit()" class="space-y-8">
+      <!-- Purchase Date -->
+      <div class="bg-white shadow-sm rounded-lg p-6">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label for="purchaseDate" class="block text-sm font-medium text-gray-700"
+              >Purchase Date</label
+            >
+            <input
+              type="date"
+              id="purchaseDate"
+              formControlName="purchaseDate"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Items -->
+      <div formArrayName="orderItems" class="bg-white shadow-sm rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-medium text-gray-900">Order Items</h2>
+          <button
+            type="button"
+            (click)="addOrderItem()"
+            class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <svg
+              class="-ml-1 mr-2 h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+            Add Item
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div
+            *ngFor="let item of orderItems.controls; let i = index"
+            [formGroupName]="i"
+            class="p-4 border border-gray-200 rounded-lg hover:border-gray-300"
+          >
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+              <!-- Product Type -->
+              <div class="lg:col-span-2">
+                <label class="block text-sm font-medium text-gray-700">Product</label>
+                <select
+                  formControlName="productType"
+                  (change)="onProductTypeChange(i)"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                >
+                  <option value="">Select Product</option>
+                  <option *ngFor="let productType of productTypes" [ngValue]="productType">
+                    {{ productType.productName }} - {{ productType.productCode }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Quantity -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                <input
+                  type="number"
+                  formControlName="quantity"
+                  min="1"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                />
+              </div>
+
+              <!-- Unit Price -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Unit Price</label>
+                <input
+                  type="number"
+                  formControlName="unitPrice"
+                  step="0.01"
+                  min="0"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                />
+              </div>
+
+              <!-- Tax Rate -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Tax Rate (%)</label>
+                <input
+                  type="number"
+                  formControlName="taxRate"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                />
+              </div>
+
+              <!-- Total -->
+              <div class="flex items-center">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Total</label>
+                  <div class="mt-1 text-sm font-medium text-gray-900">
+                    {{ calculateItemTotal(i) | currency }}
+                  </div>
+                </div>
+
+                <!-- Remove Button -->
+                <button
+                  type="button"
+                  (click)="removeOrderItem(i)"
+                  [disabled]="orderItems.length === 1"
+                  class="ml-4 inline-flex items-center p-1.5 border border-transparent rounded-full text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <svg
+                    class="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="bg-white shadow-sm rounded-lg p-6">
+        <div class="flex justify-between items-center">
+          <div class="text-lg font-medium text-gray-900">Grand Total</div>
+          <div class="text-2xl font-bold text-blue-600">{{ calculateGrandTotal() | currency }}</div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex justify-end space-x-10">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg
+            *ngIf="isSubmitting"
+            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          Back
+        </button>
+        <button
+          type="submit"
+          [disabled]="isSubmitting || purchaseOrderForm.invalid"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg
+            *ngIf="isSubmitting"
+            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          {{ isSubmitting ? 'Creating...' : 'Create Purchase Order' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
