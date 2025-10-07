@@ -22,6 +22,10 @@ export class ViewPurchaseOrder implements OnInit {
   isSubmitting = false;
   orderForm: FormGroup;
 
+  // Add these new properties to the class
+  editingRow: number | null = null;
+  inlineForm: FormGroup | null = null;
+
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
@@ -40,7 +44,6 @@ export class ViewPurchaseOrder implements OnInit {
       return;
     }
     this.loadProductTypes();
-    this.patchFormWithOrderData();
   }
 
   createOrderForm(): FormGroup {
@@ -56,12 +59,12 @@ export class ViewPurchaseOrder implements OnInit {
   createOrderItemFormGroup(item?: ProductOrderItemDto): FormGroup {
     return this.fb.group({
       id: [item?.id],
-      productType: [item?.productTypeId, Validators.required],
+      productType: [item?.productType || null, Validators.required],
       productName: [item?.productName],
-      quantity: [item?.quantity, [Validators.required, Validators.min(1)]],
-      unitPrice: [item?.unitPrice, [Validators.required, Validators.min(0)]],
+      quantity: [item?.quantity || 1, [Validators.required, Validators.min(1)]],
+      unitPrice: [item?.unitPrice || 0, [Validators.required, Validators.min(0)]],
       size: [item?.size],
-      taxAmount: [item?.taxAmount, [Validators.required, Validators.min(0)]],
+      taxAmount: [item?.taxAmount || 0, [Validators.required, Validators.min(0)]],
       totalTax: [item?.totalTax],
       totalPriceWithTax: [item?.totalPriceWithTax],
     });
@@ -71,6 +74,8 @@ export class ViewPurchaseOrder implements OnInit {
     this.inventoryService.getAllProductTypes().subscribe({
       next: (types) => {
         this.productTypes = types;
+        // After loading product types, patch the form data
+        this.patchFormWithOrderData();
       },
       error: (error) => console.error('Error loading product types:', error),
     });
@@ -82,7 +87,12 @@ export class ViewPurchaseOrder implements OnInit {
       itemsFormArray.clear();
 
       this.order.orderItems.forEach((item) => {
-        itemsFormArray.push(this.createOrderItemFormGroup(item));
+        const productType = this.productTypes.find((pt) => pt.id === item.productType?.id);
+        const formGroup = this.createOrderItemFormGroup({
+          ...item,
+          productType: productType, // Set the full product type object
+        });
+        itemsFormArray.push(formGroup);
       });
     }
   }
@@ -168,5 +178,69 @@ export class ViewPurchaseOrder implements OnInit {
 
   onBack() {
     this.router.navigate(['/purchase-orders']);
+  }
+
+  // Add these new methods
+  initializeInlineForm(item: ProductOrderItemDto) {
+    this.inlineForm = this.fb.group({
+      productType: [item.productType, Validators.required],
+      quantity: [item.quantity, [Validators.required, Validators.min(1)]],
+      unitPrice: [item.unitPrice, [Validators.required, Validators.min(0)]],
+      taxAmount: [item.taxAmount, [Validators.required, Validators.min(0)]],
+    });
+  }
+
+  startInlineEdit(index: number, item: ProductOrderItemDto) {
+    this.editingRow = index;
+    this.initializeInlineForm(item);
+  }
+
+  cancelInlineEdit() {
+    this.editingRow = null;
+    this.inlineForm = null;
+  }
+
+  saveInlineEdit(index: number) {
+    if (this.inlineForm?.valid && this.order?.orderItems) {
+      const updatedItem = {
+        ...this.order.orderItems[index],
+        ...this.inlineForm.value,
+        totalPriceWithTax: this.calculateInlineItemTotal(),
+      };
+      this.order.orderItems[index] = updatedItem;
+      this.order.totalPrice = this.calculateGrandTotal();
+      this.editingRow = null;
+      this.inlineForm = null;
+    }
+  }
+
+  calculateGrandTotal(): number {
+    if (!this.order?.orderItems) return 0;
+
+    return this.order.orderItems.reduce((total, item) => {
+      const itemTotal = (item.quantity || 0) * (item.unitPrice || 0) + (item.taxAmount || 0);
+      return total + itemTotal;
+    }, 0);
+  }
+  calculateInlineItemTotal(): number {
+    if (!this.inlineForm) return 0;
+    const values = this.inlineForm.value;
+    return values.quantity * values.unitPrice + (values.taxAmount || 0);
+  }
+
+  addNewItem() {
+    if (!this.order?.orderItems) return;
+
+    const newItem: ProductOrderItemDto = {
+      quantity: 1,
+      unitPrice: 0,
+      taxAmount: 0,
+      totalPriceWithTax: 0,
+      createdAt: new Date().toISOString(),
+    };
+
+    this.order.orderItems.push(newItem);
+    const newIndex = this.order.orderItems.length - 1;
+    this.startInlineEdit(newIndex, newItem);
   }
 }

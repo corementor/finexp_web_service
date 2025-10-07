@@ -83,7 +83,30 @@
 
       <!-- Single Order Items Table -->
       <div class="px-6 py-5" *ngIf="!isEditing">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Ordered Items</h3>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Ordered Items</h3>
+          <button
+            (click)="addNewItem()"
+            class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <svg
+              class="-ml-1 mr-2 h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+            Add Item
+          </button>
+        </div>
+
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead>
@@ -124,31 +147,122 @@
                 >
                   Total price with Tax
                 </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let item of order?.orderItems" class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ item.productName }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ item.size }} ML
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                  {{ item.quantity }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                  {{ item.unitPrice | currency }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                  {{ item.taxAmount | currency }}
-                </td>
+              <tr
+                *ngFor="let item of order?.orderItems; let i = index"
+                class="hover:bg-gray-50"
+                [class.bg-blue-50]="editingRow === i"
+              >
+                <!-- Regular View -->
+                <ng-container *ngIf="editingRow !== i">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {{ item.productName }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ item.size }} ML
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    {{ item.quantity }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    {{ item.unitPrice | currency }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    {{ item.taxAmount | currency }}
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right"
+                  >
+                    {{ item.totalPriceWithTax | currency }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      (click)="startInlineEdit(i, item)"
+                      class="text-blue-600 hover:text-blue-900 mr-2"
+                    >
+                      <svg
+                        class="h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </ng-container>
 
-                <td
-                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right"
-                >
-                  {{ item.totalPriceWithTax | currency }}
-                </td>
+                <!-- Edit Form -->
+                <ng-container *ngIf="editingRow === i && inlineForm">
+                  <td class="px-6 py-4 whitespace-nowrap" [formGroup]="inlineForm">
+                    <select
+                      formControlName="productType"
+                      class="form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white"
+                    >
+                      <option *ngFor="let type of productTypes" [ngValue]="type">
+                        {{ type.productName }} ({{ type.size }} ML)
+                      </option>
+                    </select>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {{ inlineForm.get('productType')?.value?.size }} ML
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap" [formGroup]="inlineForm">
+                    <input
+                      type="number"
+                      formControlName="quantity"
+                      min="1"
+                      class="form-input w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-blue-50"
+                    />
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap" [formGroup]="inlineForm">
+                    <input
+                      type="number"
+                      formControlName="unitPrice"
+                      step="0.01"
+                      class="form-input w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-green-50"
+                    />
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap" [formGroup]="inlineForm">
+                    <input
+                      type="number"
+                      formControlName="taxAmount"
+                      step="0.01"
+                      class="form-input w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-yellow-50"
+                    />
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right"
+                  >
+                    {{ calculateInlineItemTotal() | currency }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      (click)="saveInlineEdit(i)"
+                      class="text-green-600 hover:text-green-900 mr-2"
+                      [disabled]="!inlineForm.valid"
+                    >
+                      Save
+                    </button>
+                    <button (click)="cancelInlineEdit()" class="text-red-600 hover:text-red-900">
+                      Cancel
+                    </button>
+                  </td>
+                </ng-container>
               </tr>
             </tbody>
             <tfoot class="bg-gray-50">
@@ -199,13 +313,13 @@
           [formGroupName]="i"
           class="mb-4 p-4 border rounded-lg bg-white"
         >
-          <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+          <div class="grid grid-cols-1 md:grid-cols-6 gap-6 items-end">
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700">Product</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
               <select
                 formControlName="productType"
                 (change)="onProductTypeChange(i)"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                class="form-select block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
               >
                 <option value="">Select Product</option>
                 <option *ngFor="let type of productTypes" [ngValue]="type">
@@ -215,50 +329,55 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700">Quantity</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
               <input
                 type="number"
                 formControlName="quantity"
                 (input)="calculateTotals()"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                min="1"
+                class="form-input block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700">Unit Price</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Unit Price</label>
               <input
                 type="number"
                 formControlName="unitPrice"
                 (input)="calculateTotals()"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                min="0"
+                step="0.01"
+                class="form-input block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base bg-green-50 hover:bg-green-100 transition-colors duration-200"
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700">Tax Amount</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tax Amount</label>
               <input
                 type="number"
                 formControlName="taxAmount"
                 (input)="calculateTotals()"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                min="0"
+                step="0.01"
+                class="form-input block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base bg-yellow-50 hover:bg-yellow-100 transition-colors duration-200"
               />
             </div>
 
             <div class="text-right">
-              <label class="block text-sm font-medium text-gray-700">Total</label>
-              <div class="mt-2 text-sm font-medium text-gray-900">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Total</label>
+              <div class="text-lg font-medium text-gray-900 py-3">
                 {{ calculateItemTotal(i) | currency }}
               </div>
             </div>
 
-            <div>
+            <div class="flex items-end">
               <button
                 type="button"
                 (click)="removeOrderItem(i)"
-                class="inline-flex items-center p-2 border border-transparent rounded-md text-red-600 hover:bg-red-50"
+                class="inline-flex items-center px-4 py-3 border border-transparent rounded-lg text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
                 <svg
-                  class="h-5 w-5"
+                  class="h-6 w-6"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

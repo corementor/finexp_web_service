@@ -11,6 +11,6 @@ export class ProductOrderItemDto extends AbstractBaseDto {
   taxAmount?: number;
   totalTax?: number;
   totalPriceWithTax?: number;
-  productTypeId?: ProductTypeDto;
+  productType?: ProductTypeDto;
   purchaseOrderEntity?: PurchaseOrderDto;
 }
