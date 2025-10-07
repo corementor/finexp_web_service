@@ -47,4 +47,12 @@ export class PurchaseOrderList implements OnInit {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString();
   }
+
+  viewOrderDetails(order: PurchaseOrderDto) {
+    this.router.navigate(['/view-purchase-order'], {
+      state: {
+        order: order,
+      },
+    });
+  }
 }

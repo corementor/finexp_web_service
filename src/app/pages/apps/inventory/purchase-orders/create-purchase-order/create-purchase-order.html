@@ -1,11 +1,33 @@
 <div class="min-h-screen bg-gray-50 py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900">Create Purchase Order</h1>
-      <p class="mt-2 text-sm text-gray-600">
-        Add items to your purchase order and submit when ready.
-      </p>
+    <div class="mb-8 flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Create Purchase Order</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Add items to your purchase order and submit when ready.
+        </p>
+      </div>
+      <button
+        (click)="onCancel()"
+        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      >
+        <svg
+          class="-ml-1 mr-2 h-5 w-5 text-gray-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to List
+      </button>
     </div>
 
     <!-- Form -->
@@ -23,6 +45,15 @@
               formControlName="purchaseDate"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
+            <div
+              *ngIf="
+                purchaseOrderForm.get('purchaseDate')?.invalid &&
+                purchaseOrderForm.get('purchaseDate')?.touched
+              "
+              class="text-red-600 text-sm mt-1"
+            >
+              Purchase date is required
+            </div>
           </div>
         </div>
       </div>
@@ -60,7 +91,7 @@
             [formGroupName]="i"
             class="p-4 border border-gray-200 rounded-lg hover:border-gray-300"
           >
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-7">
               <!-- Product Type -->
               <div class="lg:col-span-2">
                 <label class="block text-sm font-medium text-gray-700">Product</label>
@@ -74,6 +105,12 @@
                     {{ productType.productName }} - {{ productType.productCode }}
                   </option>
                 </select>
+                <div
+                  *ngIf="item.get('productType')?.invalid && item.get('productType')?.touched"
+                  class="text-red-600 text-sm mt-1"
+                >
+                  Product is required
+                </div>
               </div>
 
               <!-- Quantity -->
@@ -83,8 +120,15 @@
                   type="number"
                   formControlName="quantity"
                   min="1"
+                  (input)="calculateItemTotal(i)"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
+                <div
+                  *ngIf="item.get('quantity')?.invalid && item.get('quantity')?.touched"
+                  class="text-red-600 text-sm mt-1"
+                >
+                  Valid quantity is required
+                </div>
               </div>
 
               <!-- Unit Price -->
@@ -95,38 +139,59 @@
                   formControlName="unitPrice"
                   step="0.01"
                   min="0"
+                  (input)="calculateItemTotal(i)"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
+                <div
+                  *ngIf="item.get('unitPrice')?.invalid && item.get('unitPrice')?.touched"
+                  class="text-red-600 text-sm mt-1"
+                >
+                  Valid unit price is required
+                </div>
               </div>
 
-              <!-- Tax Rate -->
+              <!-- Tax Amount -->
               <div>
-                <label class="block text-sm font-medium text-gray-700">Tax Rate (%)</label>
+                <label class="block text-sm font-medium text-gray-700">Tax Amount</label>
                 <input
                   type="number"
-                  formControlName="taxRate"
+                  formControlName="taxAmount"
                   step="0.01"
                   min="0"
-                  max="100"
+                  (input)="calculateItemTotal(i)"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 />
+                <div
+                  *ngIf="item.get('taxAmount')?.invalid && item.get('taxAmount')?.touched"
+                  class="text-red-600 text-sm mt-1"
+                >
+                  Valid tax amount is required
+                </div>
+              </div>
+
+              <!-- Subtotal -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Subtotal</label>
+                <div class="mt-1 text-sm font-medium text-gray-900">
+                  {{ calculateItemSubtotal(i) | currency }}
+                </div>
               </div>
 
               <!-- Total -->
-              <div class="flex items-center">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Total</label>
-                  <div class="mt-1 text-sm font-medium text-gray-900">
-                    {{ calculateItemTotal(i) | currency }}
-                  </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Total</label>
+                <div class="mt-1 text-sm font-bold text-blue-600">
+                  {{ calculateItemTotal(i) | currency }}
                 </div>
+              </div>
 
-                <!-- Remove Button -->
+              <!-- Remove Button -->
+              <div class="flex items-end">
                 <button
                   type="button"
                   (click)="removeOrderItem(i)"
                   [disabled]="orderItems.length === 1"
-                  class="ml-4 inline-flex items-center p-1.5 border border-transparent rounded-full text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  class="inline-flex items-center p-2 border border-transparent rounded-md text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg
                     class="h-5 w-5"
@@ -158,35 +223,7 @@
       </div>
 
       <!-- Submit Button -->
-      <div class="flex justify-end space-x-10">
-        <button
-          type="button"
-          (click)="onCancel()"
-          class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg
-            *ngIf="isSubmitting"
-            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          Back
-        </button>
+      <div class="flex justify-end space-x-4">
         <button
           type="submit"
           [disabled]="isSubmitting || purchaseOrderForm.invalid"

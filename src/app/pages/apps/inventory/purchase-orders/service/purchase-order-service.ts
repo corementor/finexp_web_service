@@ -16,7 +16,7 @@ export class PurchaseOrderService {
   }
 
   updatePurchaseOrder(purchaseOrder: PurchaseOrderDto): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update/${purchaseOrder.id}`, purchaseOrder);
+    return this.http.post(`${this.apiUrl}/update`, purchaseOrder);
   }
 
   getPurchaseOrder(id: number): Observable<any> {

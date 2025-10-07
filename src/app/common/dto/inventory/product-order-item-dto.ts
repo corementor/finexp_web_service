@@ -8,7 +8,7 @@ export class ProductOrderItemDto extends AbstractBaseDto {
   unitPrice?: number;
   productName?: string;
   size?: number;
-  taxRate?: number;
+  taxAmount?: number;
   totalTax?: number;
   totalPriceWithTax?: number;
   productTypeId?: ProductTypeDto;
