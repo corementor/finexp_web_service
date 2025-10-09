@@ -13,7 +13,7 @@ import { HttpClientModule } from '@angular/common/http';
   templateUrl: './product-type.html',
   styleUrls: ['./product-type.css'],
 })
-export class ProductType implements OnInit {
+export class ManageProductTypes implements OnInit {
   productTypes: ProductTypeDto[] = [];
   productForm: FormGroup;
   showModal = false;

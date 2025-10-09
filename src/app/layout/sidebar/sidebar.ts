@@ -47,10 +47,10 @@ export class Sidebar {
     },
     {
       icon: '👥',
-      label: 'Suppliers',
+      label: 'Sales Orders',
       active: false,
       badge: null,
-      routerLink: '/inventory',
+      routerLink: '/sales-orders',
     },
     {
       icon: '🏪',

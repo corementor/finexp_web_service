@@ -44,7 +44,7 @@ export class CreatePurchaseOrder {
       productType: [null, Validators.required],
       quantity: [1, [Validators.required, Validators.min(1)]],
       unitPrice: [0, [Validators.required, Validators.min(0)]],
-      taxAmount: [0, [Validators.required, Validators.min(0)]], // Changed from taxRate to taxAmount
+      taxAmount: [0, [Validators.required, Validators.min(0)]],
     });
   }
 
@@ -86,7 +86,7 @@ export class CreatePurchaseOrder {
   calculateItemTotal(index: number): number {
     const item = this.orderItems.at(index).value;
     const subtotal = item.quantity * item.unitPrice;
-    const taxAmount = item.taxAmount || 0;
+    const taxAmount = item.taxAmount * item.quantity || 0;
     return subtotal + taxAmount;
   }
 
@@ -111,20 +111,21 @@ export class CreatePurchaseOrder {
       const purchaseOrder: PurchaseOrderDto = {
         createdAt: new Date().toISOString(),
         purchaseDate: formData.purchaseDate,
-        totalPrice: this.calculateGrandTotal(),
+        // totalPrice: this.calculateGrandTotal(),
         orderItems: formData.orderItems.map((item: any) => {
           const subtotal = item.quantity * item.unitPrice;
-          const taxAmount = item.taxAmount || 0;
+          const taxPerItem = item.taxAmount || 0;
+          const taxAmount = taxPerItem * item.quantity || 0;
           const totalWithTax = subtotal + taxAmount;
 
           return {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            taxAmount: taxAmount, // This is the actual tax amount, not rate
-            totalTax: taxAmount, // totalTax should be the same as taxAmount
-            totalPriceWithTax: totalWithTax,
+            taxAmount: taxPerItem,
+            // totalTax: taxAmount,
+            // totalPriceWithTax: totalWithTax,
             productType: {
-              id: item.productType.id, // Only send the ID for the relationship
+              id: item.productType.id,
             },
             productName: item.productType.productName,
             size: item.productType.size,

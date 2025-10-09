@@ -1,4 +1,3 @@
-import { ProductType } from '../../../pages/apps/inventory/product-type/product-type';
 import { AbstractBaseDto } from '../util/abstract-base-dto';
 import { ProductTypeDto } from './productType-dto';
 import { PurchaseOrderDto } from './purchase-order-dto';

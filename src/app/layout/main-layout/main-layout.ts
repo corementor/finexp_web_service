@@ -8,7 +8,13 @@ import { RouterOutlet, RouterModule } from '@angular/router';
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, Header, Sidebar, Footer],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    Header,
+    Sidebar,
+    // Footer
+  ],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })
