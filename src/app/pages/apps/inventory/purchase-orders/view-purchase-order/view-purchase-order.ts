@@ -1,7 +1,14 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { PurchaseOrderDto } from '../../../../../common/dto/inventory/purchase-order-dto';
 import { ProductOrderItemDto } from '../../../../../common/dto/inventory/product-order-item-dto';
 import { InventoryService } from '../../service/inventory-service';
@@ -11,7 +18,7 @@ import { PurchaseOrderService } from '../service/purchase-order-service';
 @Component({
   selector: 'app-view-purchase-order',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './view-purchase-order.html',
   styleUrl: './view-purchase-order.css',
 })
@@ -25,6 +32,7 @@ export class ViewPurchaseOrder implements OnInit {
   // Add these new properties to the class
   editingRow: number | null = null;
   inlineForm: FormGroup | null = null;
+  searchTerm: string = '';
 
   constructor(
     private router: Router,
@@ -242,5 +250,23 @@ export class ViewPurchaseOrder implements OnInit {
     this.order.orderItems.push(newItem);
     const newIndex = this.order.orderItems.length - 1;
     this.startInlineEdit(newIndex, newItem);
+  }
+
+  // Add this getter method
+  get filteredOrderItems(): any[] {
+    if (!this.order?.orderItems || !this.searchTerm) {
+      return this.order?.orderItems || [];
+    }
+
+    const term = this.searchTerm.toLowerCase();
+    return this.order.orderItems.filter(
+      (item) =>
+        item.productName?.toLowerCase().includes(term) ||
+        item.size?.toString().includes(term) ||
+        item.quantity?.toString().includes(term) ||
+        item.unitPrice?.toString().includes(term) ||
+        item.taxAmount?.toString().includes(term) ||
+        item.totalPriceWithTax?.toString().includes(term)
+    );
   }
 }

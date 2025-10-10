@@ -2,19 +2,34 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SalesOrderDTO } from '../../../../../../common/dto/inventory/sales-order-dto';
 import { SalesOrderService } from '../service/sales-order-service';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-list-sales-order',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './list-sales-order.html',
   styleUrl: './list-sales-order.css',
 })
 export class ListSalesOrder implements OnInit {
+  Math = Math;
   saleOrderForm: FormGroup;
   salesOrderList: SalesOrderDTO[] = [];
   isLoading = false;
+  searchTerm: string = '';
+  currentPage: number = 1;
+  itemsPerPage: number = 5;
+  sortColumn: string = 'saleDate';
+  sortDirection: 'asc' | 'desc' = 'desc';
+  dateFilter: string = '';
+
   constructor(
     private router: Router,
     private salesOrderService: SalesOrderService,
@@ -72,5 +87,75 @@ export class ListSalesOrder implements OnInit {
       return 0;
     }
     return order.orderItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  }
+
+  get filteredOrders(): SalesOrderDTO[] {
+    let filtered = [...this.salesOrderList];
+
+    // Apply search
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (order) =>
+          order.saleCode?.toLowerCase().includes(term) ||
+          this.formatDate(order.saleDate).toLowerCase().includes(term) ||
+          order.totalPrice?.toString().includes(term)
+      );
+    }
+
+    // Apply date filter
+    if (this.dateFilter) {
+      filtered = filtered.filter((order) => order.saleDate?.substring(0, 10) === this.dateFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (this.sortColumn) {
+        case 'saleCode':
+          comparison = (a.saleCode || '').localeCompare(b.saleCode || '');
+          break;
+        case 'saleDate':
+          comparison = new Date(a.saleDate || '').getTime() - new Date(b.saleDate || '').getTime();
+          break;
+        case 'totalItems':
+          comparison = this.calculateTotalItems(a) - this.calculateTotalItems(b);
+          break;
+        case 'totalPrice':
+          comparison = (a.totalPrice || 0) - (b.totalPrice || 0);
+          break;
+      }
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }
+
+  get paginatedOrders(): SalesOrderDTO[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredOrders.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredOrders.length / this.itemsPerPage);
+  }
+
+  onSort(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+  }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.dateFilter = '';
+    this.currentPage = 1;
   }
 }

@@ -22,6 +22,82 @@
     </button>
   </div>
 
+  <!-- Search and Filter Section -->
+  <div class="mb-8 bg-white rounded-lg shadow-sm p-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Search Input -->
+      <div class="flex-1">
+        <label for="search" class="block text-sm font-medium text-gray-700 mb-2">
+          Search Products
+        </label>
+        <div class="relative rounded-md shadow-sm">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              class="h-5 w-5 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="search"
+            [(ngModel)]="searchTerm"
+            class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-4 py-2.5 sm:text-sm border-gray-300 rounded-md"
+            placeholder="Search products..."
+          />
+        </div>
+      </div>
+
+      <!-- Items per Page -->
+      <div>
+        <label for="itemsPerPage" class="block text-sm font-medium text-gray-700 mb-2">
+          Items per Page
+        </label>
+        <div class="relative rounded-md shadow-sm">
+          <select
+            id="itemsPerPage"
+            [(ngModel)]="itemsPerPage"
+            class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-3 pr-10 py-2.5 sm:text-sm border-gray-300 rounded-md"
+          >
+            <option [ngValue]="5">5 items</option>
+            <option [ngValue]="10">10 items</option>
+            <option [ngValue]="20">20 items</option>
+            <option [ngValue]="50">50 items</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Clear Filters -->
+      <div class="flex items-end">
+        <button
+          (click)="clearFilters()"
+          class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <svg
+            class="h-5 w-5 mr-2 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Loading State -->
   <div *ngIf="loading" class="flex justify-center my-8">
     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -33,14 +109,13 @@
       <thead class="bg-gray-50">
         <tr>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            (click)="onSort('productName')"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
           >
-            Code
-          </th>
-          <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-          >
-            Name
+            Product Name
+            <span *ngIf="sortColumn === 'productName'" class="ml-1">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
           </th>
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -48,19 +123,31 @@
             Description
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            (click)="onSort('size')"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
           >
-            Size
+            Size (ML)
+            <span *ngIf="sortColumn === 'size'" class="ml-1">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            (click)="onSort('unitPrice')"
+            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
           >
             Unit Price
+            <span *ngIf="sortColumn === 'unitPrice'" class="ml-1">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            (click)="onSort('sellUnitPrice')"
+            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
           >
             Sell Price
+            <span *ngIf="sortColumn === 'sellUnitPrice'" class="ml-1">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
           </th>
           <th
             class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -70,7 +157,7 @@
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        <tr *ngFor="let type of productTypes">
+        <tr *ngFor="let type of paginatedProducts">
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ type.productCode }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ type.productName }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ type.description }}</td>
@@ -116,6 +203,54 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="px-6 py-4 flex items-center justify-between border-t border-gray-200">
+    <div class="flex-1 flex justify-between sm:hidden">
+      <button
+        [disabled]="currentPage === 1"
+        (click)="onPageChange(currentPage - 1)"
+        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+      >
+        Previous
+      </button>
+      <button
+        [disabled]="currentPage === totalPages"
+        (click)="onPageChange(currentPage + 1)"
+        class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+      <div>
+        <p class="text-sm text-gray-700">
+          Showing
+          <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
+          to
+          <span class="font-medium">
+            {{ Math.min(currentPage * itemsPerPage, filteredProducts.length) }}
+          </span>
+          of
+          <span class="font-medium">{{ filteredProducts.length }}</span>
+          results
+        </p>
+      </div>
+      <div>
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+          <button
+            *ngFor="let page of [].constructor(totalPages); let i = index"
+            (click)="onPageChange(i + 1)"
+            [class.bg-blue-50]="currentPage === i + 1"
+            [class.text-blue-600]="currentPage === i + 1"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            {{ i + 1 }}
+          </button>
+        </nav>
+      </div>
+    </div>
   </div>
 
   <!-- Add/Edit Modal -->

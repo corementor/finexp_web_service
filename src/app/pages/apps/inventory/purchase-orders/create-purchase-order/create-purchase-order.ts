@@ -78,7 +78,7 @@ export class CreatePurchaseOrder {
     if (selectedProductType) {
       itemGroup.patchValue({
         unitPrice: selectedProductType.unitPrice || 0,
-        taxAmount: 0, // Reset tax amount when product changes
+        taxAmount: 0,
       });
     }
   }
