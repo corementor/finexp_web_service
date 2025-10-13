@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
-import { InventoryService } from '../../../service/inventory-service';
-import { SalesOrderDTO } from '../../../../../../common/dto/inventory/sales-order-dto';
+import { InventoryService } from '../../service/inventory-service';
+import { SalesOrderDTO } from '../../../../../common/dto/inventory/sales-order-dto';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ProductTypeDto } from '../../../../../../common/dto/inventory/productType-dto';
+import { ProductTypeDto } from '../../../../../common/dto/inventory/productType-dto';
 import { SalesOrderService } from '../service/sales-order-service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+// import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-create-sales-order',
@@ -24,6 +25,7 @@ export class CreateSalesOrder {
     private fb: FormBuilder,
     private inventoryService: InventoryService,
     private salesOrderService: SalesOrderService,
+    // private toastService: ToastrService,
     private router: Router
   ) {
     this.salesOrderForm = this.createForm();
@@ -119,6 +121,7 @@ export class CreateSalesOrder {
         next: (response) => {
           this.isSubmitting = false;
           if (response.status === 200) {
+            // this.toastService.success('Sales Order', 'Saved successfully');
             this.router.navigate(['/sales-orders'], {
               state: { message: 'Sales order created successfully' },
             });

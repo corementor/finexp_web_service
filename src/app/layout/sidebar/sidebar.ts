@@ -10,20 +10,14 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 })
 export class Sidebar {
   menuItems = [
-    {
-      icon: '📊',
-      label: 'Dashboard',
-      active: true,
-      badge: null,
-      routerLink: '/dashboard',
-    },
-    {
-      icon: '📦',
-      label: 'Inventory',
-      active: false,
-      badge: '234',
-      routerLink: '/purchase-orders',
-    },
+    // {
+    //   icon: '📊',
+    //   label: 'Dashboard',
+    //   active: true,
+    //   badge: null,
+    //   routerLink: '/dashboard',
+    // },
+
     {
       icon: '🗂️',
       label: 'Product Types ',
@@ -38,26 +32,13 @@ export class Sidebar {
       badge: '12',
       routerLink: '/purchase-orders',
     },
-    {
-      icon: '💰',
-      label: 'Product Order Items',
-      active: false,
-      badge: null,
-      routerLink: '/product-order-items',
-    },
+
     {
       icon: '👥',
       label: 'Sales Orders',
       active: false,
       badge: null,
       routerLink: '/sales-orders',
-    },
-    {
-      icon: '🏪',
-      label: 'Customers',
-      active: false,
-      badge: null,
-      routerLink: '/inventory',
     },
   ];
 

@@ -7,6 +7,7 @@ import { PurchaseOrderService } from '../service/purchase-order-service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+// import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-create-purchase-order',
@@ -23,7 +24,7 @@ export class CreatePurchaseOrder {
     private fb: FormBuilder,
     private inventoryService: InventoryService,
     private purchaseOrderService: PurchaseOrderService,
-    private router: Router
+    private router: Router // private toastr: ToastrService
   ) {
     this.purchaseOrderForm = this.createForm();
   }
@@ -85,7 +86,7 @@ export class CreatePurchaseOrder {
 
   calculateItemTotal(index: number): number {
     const item = this.orderItems.at(index).value;
-    const subtotal = item.quantity * item.unitPrice;
+    const subtotal = this.calculateItemSubtotal(index) || 0;
     const taxAmount = item.taxAmount * item.quantity || 0;
     return subtotal + taxAmount;
   }
@@ -138,12 +139,14 @@ export class CreatePurchaseOrder {
       this.purchaseOrderService.createPurchaseOrder(purchaseOrder).subscribe({
         next: (response) => {
           this.isSubmitting = false;
-          if (response.success) {
+          if (response.status === 200) {
             // Navigate to purchase orders list or show success message
+            // this.toastr.success('Purchase Order', 'Saved successfully');
             this.router.navigate(['/purchase-orders'], {
               state: { message: 'Purchase order created successfully' },
             });
           } else {
+            // this.toastr.error('Purchase Order', 'Error creating purchase order');
             console.error('Failed to create purchase order:', response.message);
             // Show error message to user
           }

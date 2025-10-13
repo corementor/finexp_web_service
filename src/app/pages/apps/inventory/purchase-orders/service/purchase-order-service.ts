@@ -19,11 +19,15 @@ export class PurchaseOrderService {
     return this.http.post(`${this.apiUrl}/update`, purchaseOrder);
   }
 
-  getPurchaseOrder(id: number): Observable<any> {
+  getPurchaseOrderById(id: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/${id}`);
   }
 
   getPurchaseOrders(): Observable<any> {
     return this.http.get(`${this.apiUrl}/search/criteria/all`);
+  }
+
+  deletePurchaseOrderItem(itemId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete/item/${itemId}`);
   }
 }

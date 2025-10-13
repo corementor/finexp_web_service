@@ -60,7 +60,7 @@ export const routes: Routes = [
   {
     path: 'sales-orders',
     loadComponent: () =>
-      import('./pages/apps/inventory/sales/salesOrder/list-sales-order/list-sales-order').then(
+      import('../app/pages/apps/inventory/salesOrder/list-sales-order/list-sales-order').then(
         (m) => m.ListSalesOrder
       ),
     title: 'Sales Orders - FinExp',
@@ -69,7 +69,7 @@ export const routes: Routes = [
   {
     path: 'create-sales-order',
     loadComponent: () =>
-      import('./pages/apps/inventory/sales/salesOrder/create-sales-order/create-sales-order').then(
+      import('../app/pages/apps/inventory/salesOrder/create-sales-order/create-sales-order').then(
         (m) => m.CreateSalesOrder
       ),
     title: 'Create Sales Order - FinExp',
@@ -78,7 +78,7 @@ export const routes: Routes = [
   {
     path: 'view-sales-order',
     loadComponent: () =>
-      import('./pages/apps/inventory/sales/salesOrder/view-sales-order/view-sales-order').then(
+      import('../app/pages/apps/inventory/salesOrder/view-sales-order/view-sales-order').then(
         (m) => m.ViewSalesOrder
       ),
     title: 'View Sales Order - FinExp',

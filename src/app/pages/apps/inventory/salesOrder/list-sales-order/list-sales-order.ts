@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { SalesOrderDTO } from '../../../../../../common/dto/inventory/sales-order-dto';
+import { SalesOrderDTO } from '../../../../../common/dto/inventory/sales-order-dto';
 import { SalesOrderService } from '../service/sales-order-service';
 import {
   FormArray,

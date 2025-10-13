@@ -10,5 +10,5 @@ import { MainLayout } from './layout/main-layout/main-layout';
   styleUrls: ['./app.css'],
 })
 export class App {
-  title = 'fintrack-app';
+  title = 'FinExp';
 }

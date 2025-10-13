@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../../../../../../environment/environment';
+import { environment } from '../../../../../environment/environment';
 import { HttpClient } from '@angular/common/http';
-import { SalesOrderDTO } from '../../../../../../common/dto/inventory/sales-order-dto';
+import { SalesOrderDTO } from '../../../../../common/dto/inventory/sales-order-dto';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { Response } from '../../../../../../common/dto/util/response';
-import { GenericDeserializer } from '../../../../../../common/dto/util/generic-deserializer';
+import { Response } from '../../../../../common/dto/util/response';
+import { GenericDeserializer } from '../../../../../common/dto/util/generic-deserializer';
 const API_SALES_ORDER_URL = `${environment.API}/salesOrder`;
 
 @Injectable({
@@ -31,7 +31,7 @@ export class SalesOrderService {
     );
   }
 
-  updateSalesOrder(salesOrder: SalesOrderDTO): Observable<Response> {
-    return this.http.post<Response>(`${this.apiUrl}/update`, salesOrder);
+  updateSalesOrder(salesOrder: SalesOrderDTO): Observable<any> {
+    return this.http.post(`${this.apiUrl}/update`, salesOrder);
   }
 }
