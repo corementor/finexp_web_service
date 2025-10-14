@@ -11,6 +11,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ToasterService } from '../../../../../services/toaster.service';
 
 @Component({
   selector: 'app-list-sales-order',
@@ -34,7 +35,8 @@ export class ListSalesOrder implements OnInit {
     private router: Router,
     private salesOrderService: SalesOrderService,
     private cdr: ChangeDetectorRef,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toaster: ToasterService
   ) {
     this.saleOrderForm = this.createForm();
   }
@@ -51,10 +53,15 @@ export class ListSalesOrder implements OnInit {
       next: (response) => {
         this.salesOrderList = response;
         this.isLoading = false;
+        this.toaster.success(
+          'Sales Orders',
+          `Loaded ${this.salesOrderList.length} sales orders successfully`
+        );
       },
       error: (error) => {
         console.error('Error loading sales orders:', error);
         this.isLoading = false;
+        this.toaster.error('Error', 'Failed to load sales orders');
       },
     });
   }
@@ -147,6 +154,7 @@ export class ListSalesOrder implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
+    this.toaster.info('Sorting', `Sorted by ${column} (${this.sortDirection}ending)`);
   }
 
   onPageChange(page: number) {
@@ -157,5 +165,6 @@ export class ListSalesOrder implements OnInit {
     this.searchTerm = '';
     this.dateFilter = '';
     this.currentPage = 1;
+    this.toaster.info('Filters Cleared', 'All filters have been reset');
   }
 }

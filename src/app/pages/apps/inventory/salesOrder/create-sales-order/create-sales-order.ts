@@ -7,7 +7,7 @@ import { SalesOrderService } from '../service/sales-order-service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-// import { ToastrService } from 'ngx-toastr';
+import { ToasterService } from '../../../../../services/toaster.service';
 
 @Component({
   selector: 'app-create-sales-order',
@@ -25,8 +25,8 @@ export class CreateSalesOrder {
     private fb: FormBuilder,
     private inventoryService: InventoryService,
     private salesOrderService: SalesOrderService,
-    // private toastService: ToastrService,
-    private router: Router
+    private router: Router,
+    private toaster: ToasterService
   ) {
     this.salesOrderForm = this.createForm();
   }
@@ -58,19 +58,23 @@ export class CreateSalesOrder {
     this.inventoryService.getAllProductTypes().subscribe({
       next: (response) => {
         this.productTypes = response;
+        this.toaster.success('Product Types', 'Loaded successfully');
       },
       error: (error) => {
         console.error('Error loading product types:', error);
+        this.toaster.error('Product Types', 'Failed to load product types');
       },
     });
   }
 
   addOrderItem() {
     this.orderItems.push(this.createOrderItemFormGroup());
+    this.toaster.info('Order Item', 'New item added to order');
   }
 
   removeOrderItem(index: number) {
     this.orderItems.removeAt(index);
+    this.toaster.info('Order Item', 'Item removed from order');
   }
 
   onProductTypeChange(index: number) {
@@ -118,24 +122,30 @@ export class CreateSalesOrder {
       };
 
       this.salesOrderService.createSalesOrder(salesOrder).subscribe({
-        next: (response) => {
+        next: (response: any) => {
           this.isSubmitting = false;
-          if (response.status === 200) {
-            // this.toastService.success('Sales Order', 'Saved successfully');
-            this.router.navigate(['/sales-orders'], {
-              state: { message: 'Sales order created successfully' },
-            });
+          if (response.status >= 200 && response.status < 300) {
+            this.toaster.success('Sales Order', 'Created successfully');
+            setTimeout(() => {
+              this.router.navigate(['/sales-orders']);
+            }, 1000);
           } else {
+            this.toaster.error('Sales Order', 'Failed to create sales order');
             console.error('Failed to create sales order:', response.message);
           }
         },
         error: (error) => {
           this.isSubmitting = false;
           console.error('Error creating sales order:', error);
+          this.toaster.error(
+            'Sales Order',
+            error.message || 'An error occurred while creating the sales order'
+          );
         },
       });
     } else {
       this.markFormGroupTouched(this.salesOrderForm);
+      this.toaster.warning('Form Validation', 'Please fill in all required fields correctly');
     }
   }
 

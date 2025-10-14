@@ -32,16 +32,16 @@ export class InventoryService {
     );
   }
 
-  createProductType(productType: ProductTypeDto): Observable<Response> {
-    return this.http.post<Response>(`${this.baseUrl}/create`, productType);
+  createProductType(productType: ProductTypeDto): Observable<any> {
+    return this.http.post(`${this.baseUrl}/create`, productType, { observe: 'response' });
   }
 
-  updateProductType(productType: ProductTypeDto): Observable<Response> {
-    return this.http.post<Response>(`${this.baseUrl}/update`, productType);
+  updateProductType(productType: ProductTypeDto): Observable<any> {
+    return this.http.post(`${this.baseUrl}/update`, productType, { observe: 'response' });
   }
 
-  deleteProductType(productType: ProductTypeDto): Observable<Response> {
-    return this.http.post<Response>(`${this.baseUrl}/delete`, productType);
+  deleteProductType(productType: ProductTypeDto): Observable<any> {
+    return this.http.post(`${this.baseUrl}/delete`, productType, { observe: 'response' });
   }
   findAllProductOrderItemByPurchaseOrder(
     purchaseOrder: PurchaseOrderDto

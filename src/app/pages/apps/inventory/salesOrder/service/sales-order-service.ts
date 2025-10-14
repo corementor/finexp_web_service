@@ -16,8 +16,8 @@ export class SalesOrderService {
   private apiUrl = API_SALES_ORDER_URL;
   constructor(private http: HttpClient) {}
 
-  createSalesOrder(salesOrder: SalesOrderDTO): Observable<Response> {
-    return this.http.post<Response>(`${this.apiUrl}/create`, salesOrder);
+  createSalesOrder(salesOrder: SalesOrderDTO): Observable<any> {
+    return this.http.post(`${this.apiUrl}/create`, salesOrder, { observe: 'response' });
   }
   getSalesOrders(): Observable<SalesOrderDTO[]> {
     return this.http.get<Response>(`${this.apiUrl}/search/criteria/all`).pipe(
@@ -32,6 +32,6 @@ export class SalesOrderService {
   }
 
   updateSalesOrder(salesOrder: SalesOrderDTO): Observable<any> {
-    return this.http.post(`${this.apiUrl}/update`, salesOrder);
+    return this.http.post(`${this.apiUrl}/update`, salesOrder, { observe: 'response' });
   }
 }

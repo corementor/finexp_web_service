@@ -15,6 +15,7 @@ import { InventoryService } from '../../service/inventory-service';
 import { ProductTypeDto } from '../../../../../common/dto/inventory/productType-dto';
 import { SalesOrderService } from '../service/sales-order-service';
 import { Response } from '../../../../../common/dto/util/response';
+import { ToasterService } from '../../../../../services/toaster.service';
 
 @Component({
   selector: 'app-view-sales-order',
@@ -31,18 +32,18 @@ export class ViewSalesOrder implements OnInit {
   orderForm: FormGroup;
   editingRow: number | null = null;
   inlineForm: FormGroup | null = null;
-  errorMessage: string = '';
-  // Add these properties to the class
   searchTerm: string = '';
   itemsPerPage: number = 5;
   currentPage: number = 1;
   Math = Math;
+
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
     private salesOrderService: SalesOrderService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toaster: ToasterService
   ) {
     const navigation = this.router.getCurrentNavigation();
     this.order = navigation?.extras?.state?.['order'];
@@ -51,6 +52,7 @@ export class ViewSalesOrder implements OnInit {
 
   ngOnInit() {
     if (!this.order) {
+      this.toaster.warning('Navigation Error', 'No order data found. Redirecting to list...');
       this.router.navigate(['/sales-orders']);
       return;
     }
@@ -72,10 +74,11 @@ export class ViewSalesOrder implements OnInit {
       next: (types) => {
         this.productTypes = types;
         this.patchFormWithOrderData();
+        this.toaster.success('Product Types', 'Loaded successfully');
       },
       error: (error) => {
         console.error('Error loading product types:', error);
-        this.errorMessage = 'Failed to load product types';
+        this.toaster.error('Product Types', 'Failed to load product types');
       },
     });
   }
@@ -125,52 +128,21 @@ export class ViewSalesOrder implements OnInit {
     }, 0);
   }
 
-  // calculateGrandTotal(): number {
-  //   if (!this.order?.orderItems) return 0;
-  //   return this.order.orderItems.reduce((total, item) => {
-  //     return total + (item.quantity || 0) * (item.unitPrice || 0);
-  //   }, 0);
-  // }
-
-  // addNewItem() {
-  //   if (!this.order) return;
-
-  //   if (!this.order.orderItems) {
-  //     this.order.orderItems = [];
-  //   }
-
-  //   const newItem: SalesOrderItemDTO = {
-  //     quantity: 1,
-  //     unitPrice: 0,
-  //     totalPrice: 0,
-  //     createdAt: new Date().toISOString(),
-  //   };
-
-  //   this.order.orderItems.push(newItem);
-  //   const newIndex = this.order.orderItems.length - 1;
-  //   this.startInlineEdit(newIndex, newItem);
-  // }
-
   addNewItem() {
     if (!this.order?.orderItems) return;
 
-    // Create an empty item without defaults - let user fill it
     const newItem: SalesOrderItemDTO = {
-      quantity: 1, // Only keep quantity as 1, remove other defaults
-      unitPrice: undefined, // Don't set default price
-      totalPrice: 0, // Keep tax as 0
-
-      // Don't set productType, productName, size - let user choose
+      quantity: 1,
+      unitPrice: undefined,
+      totalPrice: 0,
       createdAt: new Date().toISOString(),
     };
 
     this.order.orderItems.push(newItem);
     const newIndex = this.order.orderItems.length - 1;
 
-    // DON'T call updateOrderInBackend() here - wait for user to fill the form
-    // this.updateOrderInBackend();
-
     this.startInlineEdit(newIndex, newItem);
+    this.toaster.info('New Item', 'Fill in the details for the new item');
   }
 
   startInlineEdit(index: number, item: SalesOrderItemDTO) {
@@ -186,102 +158,21 @@ export class ViewSalesOrder implements OnInit {
     });
   }
 
-  // saveInlineEdit(index: number) {
-  //   if (this.inlineForm?.valid && this.order?.orderItems) {
-  //     this.isSubmitting = true;
-  //     const selectedProductType = this.inlineForm.value.productType;
-
-  //     const updatedItem: SalesOrderItemDTO = {
-  //       ...this.order.orderItems[index],
-  //       ...this.inlineForm.value,
-  //       productName: selectedProductType.productName,
-  //       size: selectedProductType.size,
-  //       totalPrice: this.calculateInlineItemTotal(),
-  //       productType: {
-  //         id: selectedProductType.id,
-  //       },
-  //     };
-
-  //     this.order.orderItems[index] = updatedItem;
-  //     this.order.totalPrice = this.calculateGrandTotal();
-
-  //     this.salesOrderService.updateSalesOrder(this.order).subscribe({
-  //       next: (response: Response) => {
-  //         this.isSubmitting = false;
-  //         if (response.status === 200) {
-  //           this.order = response.data;
-  //           this.editingRow = null;
-  //           this.inlineForm = null;
-  //           this.errorMessage = '';
-  //         } else {
-  //           this.errorMessage = response.message || 'Failed to update order';
-  //         }
-  //       },
-  //       error: (error) => {
-  //         this.isSubmitting = false;
-  //         console.error('Error updating order:', error);
-  //         this.errorMessage = 'An error occurred while updating the order';
-  //       },
-  //     });
-  //   }
-  // }
-
-  // saveInlineEdit(index: number) {
-  //   if (this.inlineForm?.valid && this.order?.orderItems) {
-  //     const formValues = this.inlineForm.value;
-
-  //     // Enhanced validation
-  //     if (!formValues.productType) {
-  //       alert('Please select a product');
-  //       return;
-  //     }
-  //     if (!formValues.quantity || formValues.quantity < 1) {
-  //       alert('Please enter a valid quantity (minimum 1)');
-  //       return;
-  //     }
-  //     if (!formValues.unitPrice || formValues.unitPrice <= 0) {
-  //       alert('Please enter a valid unit price');
-  //       return;
-  //     }
-
-  //     const updatedItem = {
-  //       ...this.order.orderItems[index],
-  //       ...formValues,
-  //       productName: formValues.productType.productName,
-  //       size: formValues.productType.size,
-  //       // totalPrice: this.calculateInlineItemTotal(),
-  //     };
-
-  //     this.order.orderItems[index] = updatedItem;
-  //     this.order.totalPrice = this.calculateGrandTotal();
-
-  //     // Persist to backend only when all data is valid
-  //     this.updateOrderInBackend();
-
-  //     this.editingRow = null;
-  //     this.inlineForm = null;
-
-  //     // Show success message
-  //     console.log('Item added successfully');
-  //   }
-  // }
-
-  // Update the save method to calculate totalPrice correctly
   saveInlineEdit(index: number) {
     if (this.inlineForm?.valid && this.order?.orderItems) {
       const formValues = this.inlineForm.value;
 
       // Enhanced validation
       if (!formValues.productType) {
-        alert('Please select a product');
+        this.toaster.warning('Validation Error', 'Please select a product');
         return;
       }
       if (!formValues.quantity || formValues.quantity < 1) {
-        alert('Please enter a valid quantity (minimum 1)');
+        this.toaster.warning('Validation Error', 'Please enter a valid quantity (minimum 1)');
         return;
       }
       if (!formValues.unitPrice || formValues.unitPrice <= 0) {
-        alert('Please enter a valid unit price');
+        this.toaster.warning('Validation Error', 'Please enter a valid unit price');
         return;
       }
 
@@ -292,7 +183,7 @@ export class ViewSalesOrder implements OnInit {
         ...formValues,
         productName: formValues.productType.productName,
         size: formValues.productType.size,
-        totalPrice: itemTotal, // Set the calculated total
+        totalPrice: itemTotal,
       };
 
       this.order.orderItems[index] = updatedItem;
@@ -303,28 +194,30 @@ export class ViewSalesOrder implements OnInit {
 
       this.editingRow = null;
       this.inlineForm = null;
-      console.log('Item updated successfully');
+      this.toaster.success('Order Item', 'Item updated successfully');
+    } else {
+      this.toaster.warning('Form Validation', 'Please fill in all required fields correctly');
     }
   }
-  /**
-   * Update the entire order in backend
-   */
+
   private updateOrderInBackend() {
     if (!this.order) return;
 
     this.salesOrderService.updateSalesOrder(this.order).subscribe({
       next: (response) => {
-        if (response.success) {
-          console.log('Order updated successfully');
+        if (response.status >= 200 && response.status < 300) {
+          this.toaster.success('Order Updated', 'Changes saved successfully');
         } else {
-          console.error('Failed to update order:', response.message);
+          this.toaster.error('Update Failed', response.message || 'Failed to update order');
         }
       },
       error: (error) => {
         console.error('Error updating order:', error);
+        this.toaster.error('Update Failed', error.message || 'An error occurred while updating');
       },
     });
   }
+
   calculateInlineItemTotal(): number {
     if (!this.inlineForm) return 0;
     const values = this.inlineForm.value;
@@ -336,16 +229,20 @@ export class ViewSalesOrder implements OnInit {
   cancelInlineEdit() {
     this.editingRow = null;
     this.inlineForm = null;
-    this.errorMessage = '';
+    this.toaster.info('Edit Cancelled', 'Inline edit cancelled');
   }
 
   onBack() {
     this.router.navigate(['/sales-orders']);
   }
+
   toggleEdit() {
     this.isEditing = !this.isEditing;
     if (!this.isEditing) {
       this.patchFormWithOrderData();
+      this.toaster.info('Edit Mode', 'Edit mode cancelled');
+    } else {
+      this.toaster.info('Edit Mode', 'You can now edit the order');
     }
   }
 
@@ -383,23 +280,29 @@ export class ViewSalesOrder implements OnInit {
           if (response.status === 200) {
             this.order = response.data;
             this.isEditing = false;
-            this.errorMessage = '';
+            this.toaster.success('Sales Order', 'Updated successfully');
           } else {
-            this.errorMessage = response.message || 'Failed to update order';
+            this.toaster.error('Sales Order', response.message || 'Failed to update order');
           }
         },
         error: (error) => {
           this.isSubmitting = false;
           console.error('Error updating order:', error);
-          this.errorMessage = 'An error occurred while updating the order';
+          this.toaster.error(
+            'Sales Order',
+            error.message || 'An error occurred while updating the order'
+          );
         },
       });
+    } else {
+      this.toaster.warning('Form Validation', 'Please fill in all required fields correctly');
     }
   }
 
   removeOrderItem(index: number) {
     this.orderItems.removeAt(index);
     this.calculateTotals();
+    this.toaster.info('Order Item', 'Item removed from form');
   }
 
   onProductTypeChange(index: number) {
@@ -416,7 +319,6 @@ export class ViewSalesOrder implements OnInit {
     this.calculateTotals();
   }
 
-  // Add this getter method
   get filteredOrderItems(): any[] {
     if (!this.order?.orderItems || !this.searchTerm) {
       return this.order?.orderItems || [];
@@ -432,7 +334,6 @@ export class ViewSalesOrder implements OnInit {
     );
   }
 
-  // Add these getter methods
   get paginatedOrderItems(): any[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredOrderItems.slice(startIndex, startIndex + this.itemsPerPage);
@@ -442,7 +343,6 @@ export class ViewSalesOrder implements OnInit {
     return Math.ceil(this.filteredOrderItems.length / this.itemsPerPage);
   }
 
-  // Add this method
   onPageChange(page: number) {
     this.currentPage = page;
   }

@@ -1,14 +1,12 @@
-import { Component } from '@angular/core';
-import { InventoryService } from '../../service/inventory-service';
-import { PurchaseOrderDto } from '../../../../../common/dto/inventory/purchase-order-dto';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ProductTypeDto } from '../../../../../common/dto/inventory/productType-dto';
-import { PurchaseOrderService } from '../service/purchase-order-service';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-// import { ToastrService } from 'ngx-toastr';
-
+import { InventoryService } from '../../service/inventory-service';
+import { PurchaseOrderService } from '../service/purchase-order-service';
+import { ProductTypeDto } from '../../../../../common/dto/inventory/productType-dto';
+import { ToasterService } from '../../../../../services/toaster.service';
+import { PurchaseOrderDto } from '../../../../../common/dto/inventory/purchase-order-dto';
 @Component({
   selector: 'app-create-purchase-order',
   imports: [CommonModule, ReactiveFormsModule],
@@ -24,7 +22,8 @@ export class CreatePurchaseOrder {
     private fb: FormBuilder,
     private inventoryService: InventoryService,
     private purchaseOrderService: PurchaseOrderService,
-    private router: Router // private toastr: ToastrService
+    private router: Router,
+    private toaster: ToasterService
   ) {
     this.purchaseOrderForm = this.createForm();
   }
@@ -57,9 +56,11 @@ export class CreatePurchaseOrder {
     this.inventoryService.getAllProductTypes().subscribe({
       next: (response) => {
         this.productTypes = response;
+        this.toaster.success('Product Types', 'Loaded successfully');
       },
       error: (error) => {
         console.error('Error loading product types:', error);
+        this.toaster.error('Product Types', 'Failed to load product types');
       },
     });
   }
@@ -70,6 +71,7 @@ export class CreatePurchaseOrder {
 
   removeOrderItem(index: number) {
     this.orderItems.removeAt(index);
+    this.toaster.info('Order Item', 'Item removed from order');
   }
 
   onProductTypeChange(index: number) {
@@ -108,11 +110,9 @@ export class CreatePurchaseOrder {
 
       const formData = this.purchaseOrderForm.value;
 
-      // Create the purchase order with proper structure
       const purchaseOrder: PurchaseOrderDto = {
         createdAt: new Date().toISOString(),
         purchaseDate: formData.purchaseDate,
-        // totalPrice: this.calculateGrandTotal(),
         orderItems: formData.orderItems.map((item: any) => {
           const subtotal = item.quantity * item.unitPrice;
           const taxPerItem = item.taxAmount || 0;
@@ -123,8 +123,6 @@ export class CreatePurchaseOrder {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             taxAmount: taxPerItem,
-            // totalTax: taxAmount,
-            // totalPriceWithTax: totalWithTax,
             productType: {
               id: item.productType.id,
             },
@@ -134,31 +132,36 @@ export class CreatePurchaseOrder {
         }),
       };
 
-      console.log('Sending purchase order:', purchaseOrder); // For debugging
+      console.log('Sending purchase order:', purchaseOrder);
 
       this.purchaseOrderService.createPurchaseOrder(purchaseOrder).subscribe({
-        next: (response) => {
+        next: (response: any) => {
           this.isSubmitting = false;
-          if (response.status === 200) {
-            // Navigate to purchase orders list or show success message
-            // this.toastr.success('Purchase Order', 'Saved successfully');
-            this.router.navigate(['/purchase-orders'], {
-              state: { message: 'Purchase order created successfully' },
-            });
+          console.log('Response:', response); // Debug log
+
+          // Check HTTP status code (200-299 are success codes)
+          if (response.status >= 200 && response.status < 300) {
+            this.toaster.success('Purchase Order', 'Created successfully');
+            setTimeout(() => {
+              this.router.navigate(['/purchase-orders']);
+            }, 1000);
           } else {
-            // this.toastr.error('Purchase Order', 'Error creating purchase order');
-            console.error('Failed to create purchase order:', response.message);
-            // Show error message to user
+            this.toaster.error('Purchase Order', 'Failed to create purchase order');
+            console.error('Failed to create purchase order:', response);
           }
         },
         error: (error) => {
           this.isSubmitting = false;
           console.error('Error creating purchase order:', error);
-          // Show error message to user
+          this.toaster.error(
+            'Purchase Order',
+            error.message || 'An error occurred while creating the purchase order'
+          );
         },
       });
     } else {
       this.markFormGroupTouched(this.purchaseOrderForm);
+      this.toaster.warning('Form Validation', 'Please fill in all required fields correctly');
     }
   }
 

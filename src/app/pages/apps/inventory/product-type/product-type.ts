@@ -1,67 +1,82 @@
 import { Component, OnInit } from '@angular/core';
-import { ProductTypeDto } from '../../../../common/dto/inventory/productType-dto';
-import { InventoryService } from '../service/inventory-service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+  FormsModule,
+} from '@angular/forms';
+import { InventoryService } from '../service/inventory-service';
+import { ProductTypeDto } from '../../../../common/dto/inventory/productType-dto';
+import { ToasterService } from '../../../../services/toaster.service';
 
 @Component({
   selector: 'app-product-type',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './product-type.html',
-  styleUrls: ['./product-type.css'],
+  styleUrl: './product-type.css',
 })
-export class ManageProductTypes implements OnInit {
+export class ProductType implements OnInit {
   productTypes: ProductTypeDto[] = [];
   productForm: FormGroup;
   showModal = false;
-  loading = false;
-  isEditing = false;
-  selectedProduct?: ProductTypeDto;
   showDeleteModal = false;
+  isEditing = false;
+  loading = false;
+  currentProductType?: ProductTypeDto;
   productToDelete?: ProductTypeDto;
-  searchTerm: string = '';
-  currentPage: number = 1;
-  itemsPerPage: number = 5;
-  sortColumn: string = 'productName';
+
+  // Pagination & Filtering
+  searchTerm = '';
+  itemsPerPage = 5;
+  currentPage = 1;
+  sortColumn: keyof ProductTypeDto = 'productName';
   sortDirection: 'asc' | 'desc' = 'asc';
   Math = Math;
 
-  constructor(private inventoryService: InventoryService, private fb: FormBuilder) {
-    this.productForm = this.fb.group({
-      productName: ['', Validators.required],
-      description: [''],
-      size: [null, [Validators.required, Validators.min(0)]],
-      unitPrice: [null, [Validators.required, Validators.min(0)]],
-      sellUnitPrice: [null, [Validators.required, Validators.min(0)]],
-    });
+  constructor(
+    private fb: FormBuilder,
+    private inventoryService: InventoryService,
+    private toaster: ToasterService
+  ) {
+    this.productForm = this.createForm();
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadProductTypes();
   }
 
-  loadProductTypes(): void {
+  createForm(): FormGroup {
+    return this.fb.group({
+      productName: ['', Validators.required],
+      description: [''],
+      size: [null, [Validators.required, Validators.min(0.01)]],
+      unitPrice: [null, [Validators.required, Validators.min(0.01)]],
+      sellUnitPrice: [null, [Validators.required, Validators.min(0.01)]],
+    });
+  }
+
+  loadProductTypes() {
     this.loading = true;
     this.inventoryService.getAllProductTypes().subscribe({
-      next: (data) => {
-        this.productTypes = data;
+      next: (response) => {
+        this.productTypes = response;
         this.loading = false;
+        this.toaster.success('Product Types', `Loaded ${response.length} products successfully`);
       },
       error: (error) => {
         console.error('Error loading product types:', error);
         this.loading = false;
+        this.toaster.error('Product Types', 'Failed to load product types');
       },
     });
   }
 
-  openModal(productType?: ProductTypeDto): void {
-    this.showModal = true;
+  openModal(productType?: ProductTypeDto) {
     this.isEditing = !!productType;
-    this.selectedProduct = productType;
+    this.currentProductType = productType;
 
     if (productType) {
       this.productForm.patchValue({
@@ -71,101 +86,152 @@ export class ManageProductTypes implements OnInit {
         unitPrice: productType.unitPrice,
         sellUnitPrice: productType.sellUnitPrice,
       });
+      this.toaster.info('Edit Mode', 'Editing product type');
     } else {
       this.productForm.reset();
+      this.toaster.info('Create Mode', 'Fill in the form to add a new product');
     }
+
+    this.showModal = true;
   }
 
-  closeModal(): void {
+  closeModal() {
     this.showModal = false;
+    this.productForm.reset();
+    this.currentProductType = undefined;
+    this.isEditing = false;
   }
 
-  onSubmit(): void {
+  onSubmit() {
     if (this.productForm.valid) {
       this.loading = true;
-      const productType = {
+
+      const productData: ProductTypeDto = {
+        ...this.currentProductType,
         ...this.productForm.value,
-        ...(this.isEditing && { id: this.selectedProduct?.id }),
-      } as ProductTypeDto;
+      };
 
-      const action = this.isEditing
-        ? this.inventoryService.updateProductType(productType)
-        : this.inventoryService.createProductType(productType);
+      const request = this.isEditing
+        ? this.inventoryService.updateProductType(productData)
+        : this.inventoryService.createProductType(productData);
 
-      action.subscribe({
-        next: () => {
-          this.loadProductTypes();
-          this.closeModal();
+      request.subscribe({
+        next: (response) => {
           this.loading = false;
+
+          if (response.status >= 200 && response.status < 300) {
+            const action = this.isEditing ? 'updated' : 'created';
+            this.toaster.success(
+              'Success',
+              `Product type ${action} successfully: ${productData.productName}`
+            );
+
+            this.closeModal();
+            this.loadProductTypes();
+          } else {
+            this.toaster.error(
+              'Operation Failed',
+              response.body?.message ||
+                `Failed to ${this.isEditing ? 'update' : 'create'} product type`
+            );
+          }
         },
         error: (error) => {
-          console.error('Error saving product type:', error);
           this.loading = false;
+          console.error('Error saving product type:', error);
+          this.toaster.error(
+            'Error',
+            error.message ||
+              `An error occurred while ${this.isEditing ? 'updating' : 'creating'} the product type`
+          );
         },
       });
+    } else {
+      this.markFormGroupTouched(this.productForm);
+      this.toaster.warning('Form Validation', 'Please fill in all required fields correctly');
     }
   }
 
-  deleteProductType(productType: ProductTypeDto): void {
+  deleteProductType(productType: ProductTypeDto) {
     this.productToDelete = productType;
     this.showDeleteModal = true;
+    this.toaster.info('Delete Confirmation', 'Review the product details before deleting');
   }
 
-  closeDeleteModal(): void {
+  closeDeleteModal() {
     this.showDeleteModal = false;
     this.productToDelete = undefined;
   }
 
-  confirmDelete(): void {
-    if (this.productToDelete) {
-      this.loading = true;
-      this.inventoryService.deleteProductType(this.productToDelete).subscribe({
-        next: () => {
-          this.loadProductTypes();
-          this.closeDeleteModal();
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error deleting product type:', error);
-          this.loading = false;
-        },
-      });
+  confirmDelete() {
+    if (!this.productToDelete?.id) {
+      this.toaster.error('Delete Error', 'No product selected for deletion');
+      return;
     }
+
+    this.loading = true;
+
+    this.inventoryService.deleteProductType(this.productToDelete).subscribe({
+      next: (response) => {
+        this.loading = false;
+
+        if (response.status >= 200 && response.status < 300) {
+          this.toaster.success(
+            'Deleted',
+            `Product type "${this.productToDelete?.productName}" deleted successfully`
+          );
+
+          this.closeDeleteModal();
+          this.loadProductTypes();
+        } else {
+          this.toaster.error(
+            'Delete Failed',
+            response.body?.message || 'Failed to delete product type'
+          );
+        }
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Error deleting product type:', error);
+        this.toaster.error(
+          'Delete Error',
+          error.message || 'An error occurred while deleting the product type'
+        );
+      },
+    });
   }
 
+  // Filtering and Sorting
   get filteredProducts(): ProductTypeDto[] {
     let filtered = [...this.productTypes];
 
-    // Apply search
+    // Search filter
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(
         (product) =>
           product.productName?.toLowerCase().includes(term) ||
+          product.productCode?.toLowerCase().includes(term) ||
           product.description?.toLowerCase().includes(term) ||
-          product.size?.toString().includes(term) ||
-          product.unitPrice?.toString().includes(term) ||
-          product.sellUnitPrice?.toString().includes(term)
+          product.size?.toString().includes(term)
       );
     }
 
-    // Apply sorting
+    // Sort
     filtered.sort((a, b) => {
+      const aValue = a[this.sortColumn];
+      const bValue = b[this.sortColumn];
+
+      if (aValue === undefined || aValue === null) return 1;
+      if (bValue === undefined || bValue === null) return -1;
+
       let comparison = 0;
-      switch (this.sortColumn) {
-        case 'productName':
-          comparison = String(a.productName || '').localeCompare(String(b.productName || ''));
-          break;
-        case 'size':
-          comparison = (a.size || 0) - (b.size || 0);
-          break;
-        case 'unitPrice':
-          comparison = (a.unitPrice || 0) - (b.unitPrice || 0);
-          break;
-        case 'sellUnitPrice':
-          comparison = (a.sellUnitPrice || 0) - (b.sellUnitPrice || 0);
-          break;
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue);
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue;
       }
+
       return this.sortDirection === 'asc' ? comparison : -comparison;
     });
 
@@ -181,17 +247,20 @@ export class ManageProductTypes implements OnInit {
     return Math.ceil(this.filteredProducts.length / this.itemsPerPage);
   }
 
-  onSort(column: string) {
+  onPageChange(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  onSort(column: keyof ProductTypeDto) {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-  }
-
-  onPageChange(page: number) {
-    this.currentPage = page;
+    this.toaster.info('Sorting', `Sorted by ${column} (${this.sortDirection}ending)`);
   }
 
   clearFilters() {
@@ -199,5 +268,17 @@ export class ManageProductTypes implements OnInit {
     this.currentPage = 1;
     this.sortColumn = 'productName';
     this.sortDirection = 'asc';
+    this.toaster.info('Filters Cleared', 'All filters have been reset');
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.keys(formGroup.controls).forEach((key) => {
+      const control = formGroup.get(key);
+      control?.markAsTouched();
+
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      }
+    });
   }
 }

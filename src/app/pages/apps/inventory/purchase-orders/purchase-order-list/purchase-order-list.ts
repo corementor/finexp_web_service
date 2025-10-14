@@ -4,6 +4,7 @@ import { PurchaseOrderDto } from '../../../../../common/dto/inventory/purchase-o
 import { PurchaseOrderService } from '../service/purchase-order-service';
 import { Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ToasterService } from '../../../../../services/toaster.service';
 
 @Component({
   selector: 'app-purchase-order-list',
@@ -22,7 +23,11 @@ export class PurchaseOrderList implements OnInit {
   sortDirection: 'asc' | 'desc' = 'desc';
   dateFilter: string = '';
   Math = Math;
-  constructor(private purchaseOrderService: PurchaseOrderService, private router: Router) {}
+  constructor(
+    private purchaseOrderService: PurchaseOrderService,
+    private toaster: ToasterService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.loadPurchaseOrders();
@@ -34,8 +39,13 @@ export class PurchaseOrderList implements OnInit {
       next: (response) => {
         this.purchaseOrders = response.data;
         this.isLoading = false;
+        this.toaster.success(
+          'Purchase Orders',
+          `Loaded ${this.purchaseOrders.length} purchase orders successfully`
+        );
       },
       error: (error) => {
+        this.toaster.error('Error', 'Failed to load purchase orders');
         console.error('Error loading purchase orders:', error);
         this.isLoading = false;
       },
@@ -124,6 +134,7 @@ export class PurchaseOrderList implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
+    this.toaster.info('Sorting', `Sorted by ${column} (${this.sortDirection}ending)`);
   }
 
   onPageChange(page: number) {
@@ -134,5 +145,6 @@ export class PurchaseOrderList implements OnInit {
     this.searchTerm = '';
     this.dateFilter = '';
     this.currentPage = 1;
+    this.toaster.info('Filters Cleared', 'All filters have been reset');
   }
 }

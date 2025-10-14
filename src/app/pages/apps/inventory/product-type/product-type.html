@@ -109,6 +109,15 @@
       <thead class="bg-gray-50">
         <tr>
           <th
+            (click)="onSort('productCode')"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+          >
+            Product Code
+            <span *ngIf="sortColumn === 'productCode'" class="ml-1">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
+          </th>
+          <th
             (click)="onSort('productName')"
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
           >
@@ -204,54 +213,6 @@
       </tbody>
     </table>
   </div>
-
-  <!-- Pagination Controls -->
-  <!-- <div class="px-6 py-4 flex items-center justify-between border-t border-gray-200">
-    <div class="flex-1 flex justify-between sm:hidden">
-      <button
-        [disabled]="currentPage === 1"
-        (click)="onPageChange(currentPage - 1)"
-        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-      >
-        Previous
-      </button>
-      <button
-        [disabled]="currentPage === totalPages"
-        (click)="onPageChange(currentPage + 1)"
-        class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-      >
-        Next
-      </button>
-    </div>
-    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-      <div>
-        <p class="text-sm text-gray-700">
-          Showing
-          <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
-          to
-          <span class="font-medium">
-            {{ Math.min(currentPage * itemsPerPage, filteredProducts.length) }}
-          </span>
-          of
-          <span class="font-medium">{{ filteredProducts.length }}</span>
-          results
-        </p>
-      </div>
-      <div>
-        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-          <button
-            *ngFor="let page of [].constructor(totalPages); let i = index"
-            (click)="onPageChange(i + 1)"
-            [class.bg-blue-50]="currentPage === i + 1"
-            [class.text-blue-600]="currentPage === i + 1"
-            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            {{ i + 1 }}
-          </button>
-        </nav>
-      </div>
-    </div>
-  </div> -->
 
   <div class="px-6 py-4 flex items-center justify-between border-t border-gray-200">
     <!-- Mobile pagination controls -->

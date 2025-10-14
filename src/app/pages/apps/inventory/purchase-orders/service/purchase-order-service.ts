@@ -12,11 +12,11 @@ export class PurchaseOrderService {
   constructor(private http: HttpClient) {}
 
   createPurchaseOrder(purchaseOrder: PurchaseOrderDto): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, purchaseOrder);
+    return this.http.post(`${this.apiUrl}/create`, purchaseOrder, { observe: 'response' });
   }
 
   updatePurchaseOrder(purchaseOrder: PurchaseOrderDto): Observable<any> {
-    return this.http.post(`${this.apiUrl}/update`, purchaseOrder);
+    return this.http.post(`${this.apiUrl}/update`, purchaseOrder, { observe: 'response' });
   }
 
   getPurchaseOrderById(id: string): Observable<any> {

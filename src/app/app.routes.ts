@@ -1,6 +1,4 @@
 import { Routes } from '@angular/router';
-import { ManageProductTypes } from './pages/apps/inventory/product-type/product-type';
-// import { PurchaseOrder } from './pages/apps/inventory/purchase-order/purchase-order';
 import { ProductOrderItem } from './pages/apps/inventory/product-order-item/product-order-item';
 
 export const routes: Routes = [
@@ -24,7 +22,7 @@ export const routes: Routes = [
   {
     path: 'product-types',
     loadComponent: () =>
-      import('./pages/apps/inventory/product-type/product-type').then((m) => m.ManageProductTypes),
+      import('./pages/apps/inventory/product-type/product-type').then((m) => m.ProductType),
     title: 'Product Types - FinExp',
   },
   //purchase order routes
