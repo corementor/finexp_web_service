@@ -28,6 +28,6 @@ export class PurchaseOrderService {
   }
 
   deletePurchaseOrderItem(itemId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/delete/item/${itemId}`);
+    return this.http.delete(`${this.apiUrl}/delete/item/${itemId}`, { observe: 'response' });
   }
 }

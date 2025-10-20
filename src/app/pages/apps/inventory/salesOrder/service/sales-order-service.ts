@@ -34,4 +34,8 @@ export class SalesOrderService {
   updateSalesOrder(salesOrder: SalesOrderDTO): Observable<any> {
     return this.http.post(`${this.apiUrl}/update`, salesOrder, { observe: 'response' });
   }
+
+  deleteSalesOrderItem(itemId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete/item/${itemId}`, { observe: 'response' });
+  }
 }

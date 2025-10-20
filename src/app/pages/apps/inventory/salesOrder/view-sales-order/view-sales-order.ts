@@ -37,6 +37,10 @@ export class ViewSalesOrder implements OnInit {
   currentPage: number = 1;
   Math = Math;
 
+  loading = false;
+  showDeleteModal = false;
+  salesOrderItemToDelete?: SalesOrderItemDTO;
+
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
@@ -345,5 +349,49 @@ export class ViewSalesOrder implements OnInit {
 
   onPageChange(page: number) {
     this.currentPage = page;
+  }
+
+  deleteSalesOrderItem(item: SalesOrderItemDTO) {
+    this.salesOrderItemToDelete = item;
+    this.showDeleteModal = true;
+    this.toaster.info('Delete Confirmation', 'Review the product details before deleting');
+  }
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.salesOrderItemToDelete = undefined;
+  }
+  confirmDelete() {
+    if (!this.salesOrderItemToDelete?.id) {
+      this.toaster.error('Delete Error', 'No product selected for deletion');
+      return;
+    }
+    this.salesOrderService.deleteSalesOrderItem(this.salesOrderItemToDelete.id).subscribe({
+      next: (response) => {
+        if (response.status >= 200 && response.status < 300) {
+          this.toaster.success(
+            'Deleted',
+            `Product order item "${this.salesOrderItemToDelete?.productName}" deleted successfully`
+          );
+          // Remove item from local array
+          if (this.order?.orderItems) {
+            const index = this.order.orderItems.findIndex(
+              (item) => item.id === this.salesOrderItemToDelete?.id
+            );
+            if (index !== -1) {
+              this.order.orderItems.splice(index, 1);
+              // Recalculate total
+              // this.order.totalPrice = this.calculateGrandTotal();
+              this.cdr.detectChanges();
+            }
+          }
+          this.closeDeleteModal();
+        } else {
+          this.toaster.error(
+            'Delete Failed',
+            response.body?.message || 'Failed to delete product order item'
+          );
+        }
+      },
+    });
   }
 }

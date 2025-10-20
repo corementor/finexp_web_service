@@ -164,6 +164,12 @@
                   scope="col"
                   class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
+                  Total Price
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Tax Amount
                 </th>
                 <th
@@ -207,10 +213,19 @@
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                     {{ item.unitPrice | currency }}
                   </td>
+
+                  <td
+                    class="px-6 py-4 whitespace-nowrap font-medium text-sm text-gray-900 text-right"
+                  >
+                    {{ item.unitPrice * item.quantity | currency }}
+                  </td>
+
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                     {{ item.taxAmount | currency }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium text-right"
+                  >
                     {{ item.taxAmount * item.quantity | currency }}
                   </td>
                   <td
@@ -218,27 +233,6 @@
                   >
                     {{ item.totalPriceWithTax | currency }}
                   </td>
-                  <!-- <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      (click)="startInlineEdit(i, item)"
-                      class="text-blue-600 hover:text-blue-900 mr-2"
-                    >
-                      <svg
-                        class="h-5 w-5"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                  </td> -->
 
                   <!-- In the actions column of the table -->
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -263,10 +257,9 @@
                       </svg>
                     </button>
 
-                    <!-- Delete Button - Only show if item has ID -->
                     <button
                       *ngIf="item.id"
-                      (click)="deleteOrderItem(item.id, i)"
+                      (click)="deleteProductOrderItem(item)"
                       class="text-red-600 hover:text-red-900"
                     >
                       <svg
@@ -294,6 +287,7 @@
                       formControlName="productType"
                       class="form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white"
                     >
+                      >
                       <option *ngFor="let type of productTypes" [ngValue]="type">
                         {{ type.productName }} ({{ type.size }} ML)
                       </option>
@@ -348,7 +342,7 @@
             </tbody>
             <tfoot class="bg-gray-50">
               <tr>
-                <td colspan="6" class="px-6 py-5 text-right text-sm font-medium text-gray-900">
+                <td colspan="7" class="px-6 py-5 text-right text-sm font-medium text-gray-900">
                   Grand Total
                 </td>
                 <td class="px-6 py-4 text-right text-sm font-bold text-blue-600">
@@ -660,5 +654,56 @@
         </button>
       </div>
     </form>
+  </div>
+  <!-- Delete Confirmation Modal -->
+  <div
+    *ngIf="showDeleteModal"
+    class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 transition-all duration-200"
+  >
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-xl rounded-md bg-white/95">
+      <div class="mt-3 text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+          <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+        </div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Confirm Delete</h3>
+        <div class="mt-2 px-7 py-3">
+          <p class="text-sm text-gray-500">
+            Are you sure you want to delete this product order item?
+          </p>
+          <!-- Product Details -->
+          <div class="mt-4 bg-gray-50 p-3 rounded-lg text-left">
+            <p class="text-sm font-medium text-gray-900">{{ productToDelete?.productName }}</p>
+            <p class="text-xs text-gray-500 mt-1">
+              Code: {{ productToDelete?.productType?.productCode }}
+            </p>
+            <p class="text-xs text-gray-500">Quantity: {{ productToDelete?.quantity }}</p>
+            <p class="text-xs text-gray-500">Size: {{ productToDelete?.size }} ML</p>
+            <p class="text-xs text-gray-500">
+              Unit Price: {{ productToDelete?.unitPrice | currency }}
+            </p>
+            <p class="text-xs text-gray-500">
+              Total Price: {{ productToDelete?.totalPriceWithTax | currency }}
+            </p>
+          </div>
+          <p class="text-xs text-red-500 mt-4">This action cannot be undone.</p>
+        </div>
+        <div class="flex justify-center gap-4 mt-4">
+          <button
+            (click)="closeDeleteModal()"
+            class="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            Cancel
+          </button>
+          <button
+            (click)="confirmDelete()"
+            [disabled]="loading"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center justify-center min-w-[80px]"
+          >
+            <i *ngIf="loading" class="fas fa-spinner fa-spin mr-2"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

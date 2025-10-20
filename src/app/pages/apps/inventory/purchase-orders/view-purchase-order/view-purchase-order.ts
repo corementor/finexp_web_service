@@ -37,7 +37,9 @@ export class ViewPurchaseOrder implements OnInit {
   itemsPerPage: number = 5;
   currentPage: number = 1;
   Math = Math;
-
+  productToDelete?: ProductOrderItemDto;
+  showDeleteModal = false;
+  loading = false;
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
@@ -153,7 +155,7 @@ export class ViewPurchaseOrder implements OnInit {
   calculateItemTotal(index: number): number {
     const item = this.orderItems.at(index).value;
     const subtotal = (item.quantity || 0) * (item.unitPrice || 0);
-    const taxAmount = item.taxAmount || 0;
+    const taxAmount = (item.taxAmount || 0) * (item.quantity || 0);
     return subtotal + taxAmount;
   }
 
@@ -274,7 +276,7 @@ export class ViewPurchaseOrder implements OnInit {
 
     return this.order.orderItems.reduce((total, item) => {
       const subtotal = (item.quantity || 0) * (item.unitPrice || 0);
-      const taxAmount = item.taxAmount || 0;
+      const taxAmount = (item.taxAmount || 0) * (item.quantity || 0);
       return total + subtotal + taxAmount;
     }, 0);
   }
@@ -282,7 +284,7 @@ export class ViewPurchaseOrder implements OnInit {
   calculateInlineItemTotal(): number {
     if (!this.inlineForm) return 0;
     const values = this.inlineForm.value;
-    return values.quantity * values.unitPrice + (values.taxAmount || 0);
+    return values.quantity * values.unitPrice + values.taxAmount * values.quantity;
   }
 
   addNewItem() {
@@ -374,6 +376,51 @@ export class ViewPurchaseOrder implements OnInit {
       error: (error) => {
         console.error('Error deleting order item:', error);
         this.toaster.error('Delete Failed', error.message || 'An error occurred while deleting');
+      },
+    });
+  }
+
+  deleteProductOrderItem(productOrderItem: ProductOrderItemDto) {
+    this.productToDelete = productOrderItem;
+    this.showDeleteModal = true;
+    this.toaster.info('Delete Confirmation', 'Review the product details before deleting');
+  }
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.productToDelete = undefined;
+  }
+
+  confirmDelete() {
+    if (!this.productToDelete?.id) {
+      this.toaster.error('Delete Error', 'No product selected for deletion');
+      return;
+    }
+    this.purchaseOrderService.deletePurchaseOrderItem(this.productToDelete.id).subscribe({
+      next: (response) => {
+        if (response.status >= 200 && response.status < 300) {
+          this.toaster.success(
+            'Deleted',
+            `Product order item "${this.productToDelete?.productName}" deleted successfully`
+          );
+          // Remove item from local array
+          if (this.order?.orderItems) {
+            const index = this.order.orderItems.findIndex(
+              (item) => item.id === this.productToDelete?.id
+            );
+            if (index !== -1) {
+              this.order.orderItems.splice(index, 1);
+              // Recalculate total
+              // this.order.totalPrice = this.calculateGrandTotal();
+              this.cdr.detectChanges();
+            }
+          }
+          this.closeDeleteModal();
+        } else {
+          this.toaster.error(
+            'Delete Failed',
+            response.body?.message || 'Failed to delete product order item'
+          );
+        }
       },
     });
   }
