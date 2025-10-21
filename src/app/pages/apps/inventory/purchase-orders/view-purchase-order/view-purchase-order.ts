@@ -34,14 +34,13 @@ export class ViewPurchaseOrder implements OnInit {
   inlineForm: FormGroup | null = null;
   searchTerm: string = '';
 
-  itemsPerPage: number = 5;
+  itemsPerPage: number = 10;
   currentPage: number = 1;
   Math = Math;
   productToDelete?: ProductOrderItemDto;
   showDeleteModal = false;
   loading = false;
 
-  // Add these new properties
   showAddItemModal = false;
   addItemForm: FormGroup | null = null;
 
@@ -354,7 +353,6 @@ export class ViewPurchaseOrder implements OnInit {
       const formValues = this.addItemForm.value;
       const selectedProductType: ProductTypeDto = formValues.productType;
 
-      // Enhanced validation
       if (!selectedProductType) {
         this.toaster.warning('Validation Error', 'Please select a product');
         return;

@@ -4,8 +4,16 @@ import { ProductOrderItem } from './pages/apps/inventory/product-order-item/prod
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/dashboard',
+    redirectTo: '/login',
     pathMatch: 'full',
+  },
+
+  //login route
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./pages/apps/security/login-component/login-component').then((m) => m.LoginComponent),
+    title: 'Login - FinExp',
   },
   //dashboard route
   {
