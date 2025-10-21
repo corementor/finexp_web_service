@@ -30,4 +30,7 @@ export class PurchaseOrderService {
   deletePurchaseOrderItem(itemId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete/item/${itemId}`, { observe: 'response' });
   }
+  deletePurchaseOrder(order: PurchaseOrderDto): Observable<any> {
+    return this.http.post(`${this.apiUrl}/delete`, order, { observe: 'response' });
+  }
 }

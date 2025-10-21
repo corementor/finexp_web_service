@@ -40,6 +40,11 @@ export class ViewPurchaseOrder implements OnInit {
   productToDelete?: ProductOrderItemDto;
   showDeleteModal = false;
   loading = false;
+
+  // Add these new properties
+  showAddItemModal = false;
+  addItemForm: FormGroup | null = null;
+
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
@@ -211,8 +216,8 @@ export class ViewPurchaseOrder implements OnInit {
   }
 
   initializeInlineForm(item: ProductOrderItemDto) {
+    // Remove productType from the form since it's no longer editable
     this.inlineForm = this.fb.group({
-      productType: [item.productType, Validators.required],
       quantity: [item.quantity, [Validators.required, Validators.min(1)]],
       unitPrice: [item.unitPrice, [Validators.required, Validators.min(0)]],
       taxAmount: [item.taxAmount, [Validators.required, Validators.min(0)]],
@@ -220,6 +225,12 @@ export class ViewPurchaseOrder implements OnInit {
   }
 
   startInlineEdit(index: number, item: ProductOrderItemDto) {
+    // Prevent editing if product type is not set
+    if (!item.productType || !item.productName) {
+      this.toaster.warning('Cannot Edit', 'This item does not have a valid product type');
+      return;
+    }
+
     this.editingRow = index;
     this.initializeInlineForm(item);
   }
@@ -235,24 +246,34 @@ export class ViewPurchaseOrder implements OnInit {
       const formValues = this.inlineForm.value;
 
       // Enhanced validation
-      if (!formValues.productType) {
-        this.toaster.warning('Validation Error', 'Please select a product');
-        return;
-      }
       if (!formValues.quantity || formValues.quantity < 1) {
         this.toaster.warning('Validation Error', 'Please enter a valid quantity (minimum 1)');
         return;
       }
-      if (!formValues.unitPrice || formValues.unitPrice <= 0) {
+      if (
+        formValues.unitPrice === null ||
+        formValues.unitPrice === undefined ||
+        formValues.unitPrice < 0
+      ) {
         this.toaster.warning('Validation Error', 'Please enter a valid unit price');
         return;
       }
+      if (
+        formValues.taxAmount === null ||
+        formValues.taxAmount === undefined ||
+        formValues.taxAmount < 0
+      ) {
+        this.toaster.warning('Validation Error', 'Please enter a valid tax amount');
+        return;
+      }
 
+      // Keep the existing product information and only update the editable fields
       const updatedItem = {
         ...this.order.orderItems[index],
-        ...formValues,
-        productName: formValues.productType.productName,
-        size: formValues.productType.size,
+        quantity: formValues.quantity,
+        unitPrice: formValues.unitPrice,
+        taxAmount: formValues.taxAmount,
+        totalTax: formValues.taxAmount * formValues.quantity,
         totalPriceWithTax: this.calculateInlineItemTotal(),
       };
 
@@ -284,25 +305,108 @@ export class ViewPurchaseOrder implements OnInit {
   calculateInlineItemTotal(): number {
     if (!this.inlineForm) return 0;
     const values = this.inlineForm.value;
-    return values.quantity * values.unitPrice + values.taxAmount * values.quantity;
+    const quantity = values.quantity || 0;
+    const unitPrice = values.unitPrice || 0;
+    const taxAmount = values.taxAmount || 0;
+    return quantity * unitPrice + taxAmount * quantity;
   }
 
   addNewItem() {
-    if (!this.order?.orderItems) return;
+    this.showAddItemModal = true;
+    this.addItemForm = this.fb.group({
+      productType: [null, Validators.required],
+      quantity: [1, [Validators.required, Validators.min(1)]],
+      unitPrice: [0, [Validators.required, Validators.min(0)]],
+      taxAmount: [0, [Validators.required, Validators.min(0)]],
+    });
+    this.toaster.info('Add New Item', 'Select a product and fill in the details');
+  }
 
-    const newItem: ProductOrderItemDto = {
-      quantity: 1,
-      unitPrice: undefined,
-      taxAmount: 0,
-      totalPriceWithTax: 0,
-      createdAt: new Date().toISOString(),
-    };
+  closeAddItemModal() {
+    this.showAddItemModal = false;
+    this.addItemForm = null;
+  }
 
-    this.order.orderItems.push(newItem);
-    const newIndex = this.order.orderItems.length - 1;
+  onAddItemProductTypeChange() {
+    if (!this.addItemForm) return;
 
-    this.startInlineEdit(newIndex, newItem);
-    this.toaster.info('New Item', 'Fill in the details for the new item');
+    const selectedProductType: ProductTypeDto = this.addItemForm.get('productType')?.value;
+
+    if (selectedProductType) {
+      this.addItemForm.patchValue({
+        unitPrice: selectedProductType.unitPrice || 0,
+        taxAmount: 0,
+      });
+    }
+  }
+
+  calculateAddItemTotal(): number {
+    if (!this.addItemForm) return 0;
+    const values = this.addItemForm.value;
+    const quantity = values.quantity || 0;
+    const unitPrice = values.unitPrice || 0;
+    const taxAmount = values.taxAmount || 0;
+    return quantity * unitPrice + taxAmount * quantity;
+  }
+
+  saveNewItem() {
+    if (this.addItemForm?.valid && this.order) {
+      const formValues = this.addItemForm.value;
+      const selectedProductType: ProductTypeDto = formValues.productType;
+
+      // Enhanced validation
+      if (!selectedProductType) {
+        this.toaster.warning('Validation Error', 'Please select a product');
+        return;
+      }
+      if (!formValues.quantity || formValues.quantity < 1) {
+        this.toaster.warning('Validation Error', 'Please enter a valid quantity (minimum 1)');
+        return;
+      }
+      if (
+        formValues.unitPrice === null ||
+        formValues.unitPrice === undefined ||
+        formValues.unitPrice < 0
+      ) {
+        this.toaster.warning('Validation Error', 'Please enter a valid unit price');
+        return;
+      }
+      if (
+        formValues.taxAmount === null ||
+        formValues.taxAmount === undefined ||
+        formValues.taxAmount < 0
+      ) {
+        this.toaster.warning('Validation Error', 'Please enter a valid tax amount');
+        return;
+      }
+
+      const newItem: ProductOrderItemDto = {
+        productType: { id: selectedProductType.id, createdAt: selectedProductType.createdAt },
+        productName: selectedProductType.productName,
+        size: selectedProductType.size,
+        quantity: formValues.quantity,
+        unitPrice: formValues.unitPrice,
+        taxAmount: formValues.taxAmount,
+        totalTax: formValues.taxAmount * formValues.quantity,
+        totalPriceWithTax: this.calculateAddItemTotal(),
+        createdAt: new Date().toISOString(),
+      };
+
+      // Add to order items
+      if (!this.order.orderItems) {
+        this.order.orderItems = [];
+      }
+      this.order.orderItems.push(newItem);
+      this.order.totalPrice = this.calculateGrandTotal();
+
+      // Persist to backend
+      this.updateOrderInBackend();
+
+      this.closeAddItemModal();
+      this.toaster.success('Order Item', 'New item added successfully');
+    } else {
+      this.toaster.warning('Form Validation', 'Please fill in all required fields correctly');
+    }
   }
 
   private updateOrderInBackend() {
@@ -311,6 +415,7 @@ export class ViewPurchaseOrder implements OnInit {
     this.purchaseOrderService.updatePurchaseOrder(this.order).subscribe({
       next: (response) => {
         if (response.status >= 200 && response.status < 300) {
+          this.cdr.detectChanges();
           this.toaster.success('Order Updated', 'Changes saved successfully');
         } else {
           this.toaster.error('Update Failed', response.body?.message || 'Failed to update order');
@@ -361,6 +466,7 @@ export class ViewPurchaseOrder implements OnInit {
     this.purchaseOrderService.deletePurchaseOrderItem(itemId).subscribe({
       next: (response) => {
         if (response.status >= 200 && response.status < 300) {
+          this.cdr.detectChanges();
           // Remove item from local array
           if (this.order?.orderItems) {
             this.order.orderItems.splice(index, 1);

@@ -4,7 +4,7 @@ import { SalesOrderDTO } from './sales-order-dto';
 
 export class SalesOrderItemDTO extends AbstractBaseDto {
   productName?: string;
-  size?: string;
+  size?: number;
   quantity?: number;
   unitPrice?: number;
   totalPrice?: number;

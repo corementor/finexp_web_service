@@ -23,6 +23,10 @@ export class PurchaseOrderList implements OnInit {
   sortDirection: 'asc' | 'desc' = 'desc';
   dateFilter: string = '';
   Math = Math;
+
+  showDeleteModal = false;
+  orderToDelete?: PurchaseOrderDto;
+
   constructor(
     private purchaseOrderService: PurchaseOrderService,
     private toaster: ToasterService,
@@ -146,5 +150,39 @@ export class PurchaseOrderList implements OnInit {
     this.dateFilter = '';
     this.currentPage = 1;
     this.toaster.info('Filters Cleared', 'All filters have been reset');
+  }
+
+  deletePurchaseOrder(order: PurchaseOrderDto) {
+    this.orderToDelete = order;
+    this.showDeleteModal = true;
+  }
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.orderToDelete = undefined;
+  }
+  confirmDeletePurchaseOrder() {
+    if (!this.orderToDelete?.id) {
+      this.toaster.error('Delete Error', 'Invalid purchase order');
+      return;
+    }
+
+    this.purchaseOrderService.deletePurchaseOrder(this.orderToDelete).subscribe({
+      next: (response) => {
+        if (response.status >= 200 && response.status < 300) {
+          this.toaster.success(
+            'Deleted',
+            `Purchase order "${this.orderToDelete?.purchaseCode}" deleted successfully`
+          );
+          this.closeDeleteModal();
+          this.loadPurchaseOrders();
+        } else {
+          this.toaster.error('Error', 'Failed to delete purchase order');
+        }
+      },
+      error: (error) => {
+        this.toaster.error('Error', 'Failed to delete purchase order');
+        console.error('Error deleting purchase order:', error);
+      },
+    });
   }
 }

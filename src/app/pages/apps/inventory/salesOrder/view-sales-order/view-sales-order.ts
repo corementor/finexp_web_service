@@ -41,6 +41,10 @@ export class ViewSalesOrder implements OnInit {
   showDeleteModal = false;
   salesOrderItemToDelete?: SalesOrderItemDTO;
 
+  // Add these new properties
+  showAddItemModal = false;
+  addItemForm: FormGroup | null = null;
+
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
@@ -132,31 +136,20 @@ export class ViewSalesOrder implements OnInit {
     }, 0);
   }
 
-  addNewItem() {
-    if (!this.order?.orderItems) return;
-
-    const newItem: SalesOrderItemDTO = {
-      quantity: 1,
-      unitPrice: undefined,
-      totalPrice: 0,
-      createdAt: new Date().toISOString(),
-    };
-
-    this.order.orderItems.push(newItem);
-    const newIndex = this.order.orderItems.length - 1;
-
-    this.startInlineEdit(newIndex, newItem);
-    this.toaster.info('New Item', 'Fill in the details for the new item');
-  }
-
   startInlineEdit(index: number, item: SalesOrderItemDTO) {
+    // Prevent editing if product type is not set
+    if (!item.productType || !item.productName) {
+      this.toaster.warning('Cannot Edit', 'This item does not have a valid product type');
+      return;
+    }
+
     this.editingRow = index;
     this.initializeInlineForm(item);
   }
 
   initializeInlineForm(item: SalesOrderItemDTO) {
+    // Remove productType from the form since it's no longer editable
     this.inlineForm = this.fb.group({
-      productType: [item.productType, Validators.required],
       quantity: [item.quantity, [Validators.required, Validators.min(1)]],
       unitPrice: [item.unitPrice, [Validators.required, Validators.min(0)]],
     });
@@ -167,26 +160,26 @@ export class ViewSalesOrder implements OnInit {
       const formValues = this.inlineForm.value;
 
       // Enhanced validation
-      if (!formValues.productType) {
-        this.toaster.warning('Validation Error', 'Please select a product');
-        return;
-      }
       if (!formValues.quantity || formValues.quantity < 1) {
         this.toaster.warning('Validation Error', 'Please enter a valid quantity (minimum 1)');
         return;
       }
-      if (!formValues.unitPrice || formValues.unitPrice <= 0) {
+      if (
+        formValues.unitPrice === null ||
+        formValues.unitPrice === undefined ||
+        formValues.unitPrice < 0
+      ) {
         this.toaster.warning('Validation Error', 'Please enter a valid unit price');
         return;
       }
 
       const itemTotal = this.calculateInlineItemTotal();
 
+      // Keep the existing product information and only update the editable fields
       const updatedItem = {
         ...this.order.orderItems[index],
-        ...formValues,
-        productName: formValues.productType.productName,
-        size: formValues.productType.size,
+        quantity: formValues.quantity,
+        unitPrice: formValues.unitPrice,
         totalPrice: itemTotal,
       };
 
@@ -210,6 +203,7 @@ export class ViewSalesOrder implements OnInit {
     this.salesOrderService.updateSalesOrder(this.order).subscribe({
       next: (response) => {
         if (response.status >= 200 && response.status < 300) {
+          this.cdr.detectChanges();
           this.toaster.success('Order Updated', 'Changes saved successfully');
         } else {
           this.toaster.error('Update Failed', response.message || 'Failed to update order');
@@ -234,6 +228,91 @@ export class ViewSalesOrder implements OnInit {
     this.editingRow = null;
     this.inlineForm = null;
     this.toaster.info('Edit Cancelled', 'Inline edit cancelled');
+  }
+
+  addNewItem() {
+    this.showAddItemModal = true;
+    this.addItemForm = this.fb.group({
+      productType: [null, Validators.required],
+      quantity: [1, [Validators.required, Validators.min(1)]],
+      unitPrice: [0, [Validators.required, Validators.min(0)]],
+    });
+    this.toaster.info('Add New Item', 'Select a product and fill in the details');
+  }
+
+  closeAddItemModal() {
+    this.showAddItemModal = false;
+    this.addItemForm = null;
+  }
+
+  onAddItemProductTypeChange() {
+    if (!this.addItemForm) return;
+
+    const selectedProductType: ProductTypeDto = this.addItemForm.get('productType')?.value;
+
+    if (selectedProductType) {
+      this.addItemForm.patchValue({
+        unitPrice: selectedProductType.sellUnitPrice || 0,
+      });
+    }
+  }
+
+  calculateAddItemTotal(): number {
+    if (!this.addItemForm) return 0;
+    const values = this.addItemForm.value;
+    const quantity = values.quantity || 0;
+    const unitPrice = values.unitPrice || 0;
+    return quantity * unitPrice;
+  }
+
+  saveNewItem() {
+    if (this.addItemForm?.valid && this.order) {
+      const formValues = this.addItemForm.value;
+      const selectedProductType: ProductTypeDto = formValues.productType;
+
+      // Enhanced validation
+      if (!selectedProductType) {
+        this.toaster.warning('Validation Error', 'Please select a product');
+        return;
+      }
+      if (!formValues.quantity || formValues.quantity < 1) {
+        this.toaster.warning('Validation Error', 'Please enter a valid quantity (minimum 1)');
+        return;
+      }
+      if (
+        formValues.unitPrice === null ||
+        formValues.unitPrice === undefined ||
+        formValues.unitPrice < 0
+      ) {
+        this.toaster.warning('Validation Error', 'Please enter a valid unit price');
+        return;
+      }
+
+      const newItem: SalesOrderItemDTO = {
+        productType: { id: selectedProductType.id, createdAt: selectedProductType.createdAt },
+        productName: selectedProductType.productName,
+        size: selectedProductType.size,
+        quantity: formValues.quantity,
+        unitPrice: formValues.unitPrice,
+        totalPrice: this.calculateAddItemTotal(),
+        createdAt: new Date().toISOString(),
+      };
+
+      // Add to order items
+      if (!this.order.orderItems) {
+        this.order.orderItems = [];
+      }
+      this.order.orderItems.push(newItem);
+      this.order.totalPrice = this.calculateGrandTotal();
+
+      // Persist to backend
+      this.updateOrderInBackend();
+
+      this.closeAddItemModal();
+      this.toaster.success('Order Item', 'New item added successfully');
+    } else {
+      this.toaster.warning('Form Validation', 'Please fill in all required fields correctly');
+    }
   }
 
   onBack() {
@@ -317,7 +396,7 @@ export class ViewSalesOrder implements OnInit {
       itemGroup.patchValue({
         productName: selectedProductType.productName,
         unitPrice: selectedProductType.sellUnitPrice || 0,
-        size: selectedProductType.size,
+        size: selectedProductType.size?.toString(),
       });
     }
     this.calculateTotals();
@@ -368,6 +447,7 @@ export class ViewSalesOrder implements OnInit {
     this.salesOrderService.deleteSalesOrderItem(this.salesOrderItemToDelete.id).subscribe({
       next: (response) => {
         if (response.status >= 200 && response.status < 300) {
+          this.cdr.detectChanges();
           this.toaster.success(
             'Deleted',
             `Product order item "${this.salesOrderItemToDelete?.productName}" deleted successfully`
@@ -381,7 +461,6 @@ export class ViewSalesOrder implements OnInit {
               this.order.orderItems.splice(index, 1);
               // Recalculate total
               // this.order.totalPrice = this.calculateGrandTotal();
-              this.cdr.detectChanges();
             }
           }
           this.closeDeleteModal();
