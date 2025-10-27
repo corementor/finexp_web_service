@@ -18,6 +18,13 @@ export class CreatePurchaseOrder {
   productTypes: ProductTypeDto[] = [];
   isSubmitting = false;
 
+  showDuplicateModal = false;
+  duplicateProductInfo: {
+    productName: string;
+    existingIndex: number;
+    newIndex: number;
+  } | null = null;
+
   constructor(
     private fb: FormBuilder,
     private inventoryService: InventoryService,
@@ -73,19 +80,65 @@ export class CreatePurchaseOrder {
     this.orderItems.removeAt(index);
     this.toaster.info('Order Item', 'Item removed from order');
   }
-
   onProductTypeChange(index: number) {
     const itemGroup = this.orderItems.at(index);
     const selectedProductType: ProductTypeDto = itemGroup.get('productType')?.value;
 
     if (selectedProductType) {
-      itemGroup.patchValue({
-        unitPrice: selectedProductType.unitPrice || 0,
-        taxAmount: 0,
-      });
+      // Check for duplicates
+      const duplicateIndex = this.checkForDuplicateProduct(selectedProductType.id!, index);
+
+      if (duplicateIndex !== -1) {
+        // Duplicate found - show modal and clear selection
+        this.duplicateProductInfo = {
+          productName: selectedProductType.productName || 'Unknown Product',
+          existingIndex: duplicateIndex,
+          newIndex: index,
+        };
+        this.showDuplicateModal = true;
+
+        // Clear the duplicate selection immediately
+        itemGroup.patchValue({
+          productType: null,
+          unitPrice: 0,
+          taxAmount: 0,
+        });
+
+        // Show error toast
+        this.toaster.error(
+          'Duplicate Product Not Allowed',
+          `${selectedProductType.productName} is already added at row ${
+            duplicateIndex + 1
+          }. Please select a different product.`
+        );
+      } else {
+        // No duplicate, proceed with auto-fill
+        itemGroup.patchValue({
+          unitPrice: selectedProductType.unitPrice || 0,
+          taxAmount: 0,
+        });
+      }
     }
   }
 
+  checkForDuplicateProduct(productTypeId: string, currentIndex: number): number {
+    for (let i = 0; i < this.orderItems.length; i++) {
+      if (i !== currentIndex) {
+        const item = this.orderItems.at(i);
+        const productType = item.get('productType')?.value;
+
+        if (productType && productType.id === productTypeId) {
+          return i; // Return the index of the duplicate
+        }
+      }
+    }
+    return -1; // No duplicate found
+  }
+
+  closeDuplicateModal() {
+    this.showDuplicateModal = false;
+    this.duplicateProductInfo = null;
+  }
   calculateItemTotal(index: number): number {
     const item = this.orderItems.at(index).value;
     const subtotal = this.calculateItemSubtotal(index) || 0;

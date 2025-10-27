@@ -6,9 +6,16 @@ import { ToasterComponent } from './components/toaster/toaster.component';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [MainLayout, ToasterComponent],
-  template: `<app-main-layout></app-main-layout>
-    <app-toaster></app-toaster> `,
+  imports: [
+    // MainLayout,
+    ToasterComponent,
+    RouterOutlet,
+  ],
+  template: `
+    <!-- <app-main-layout></app-main-layout> -->
+    <router-outlet></router-outlet>
+    <app-toaster></app-toaster>
+  `,
   styleUrls: ['./app.css'],
 })
 export class App {

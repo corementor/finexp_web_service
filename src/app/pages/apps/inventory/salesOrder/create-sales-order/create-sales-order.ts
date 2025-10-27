@@ -21,6 +21,13 @@ export class CreateSalesOrder {
   productTypes: ProductTypeDto[] = [];
   isSubmitting = false;
 
+  showDuplicateModal = false;
+  duplicateProductInfo: {
+    productName: string;
+    existingIndex: number;
+    newIndex: number;
+  } | null = null;
+
   constructor(
     private fb: FormBuilder,
     private inventoryService: InventoryService,
@@ -82,12 +89,50 @@ export class CreateSalesOrder {
     const selectedProductType: ProductTypeDto = itemGroup.get('productType')?.value;
 
     if (selectedProductType) {
-      itemGroup.patchValue({
-        unitPrice: selectedProductType.sellUnitPrice || 0,
-      });
+      const duplicateIndex = this.checkForDuplicateProduct(selectedProductType.id!, index);
+
+      if (duplicateIndex !== -1) {
+        this.duplicateProductInfo = {
+          productName: selectedProductType.productName || 'Unknown Product',
+          existingIndex: duplicateIndex + 1,
+          newIndex: index + 1,
+        };
+        this.showDuplicateModal = true;
+        itemGroup.patchValue({
+          productType: null,
+          unitPrice: 0,
+        });
+        // Show error toast
+        this.toaster.error(
+          'Duplicate Product Not Allowed',
+          `${selectedProductType.productName} is already added at row ${duplicateIndex}. Please select a different product.`
+        );
+      } else {
+        itemGroup.patchValue({
+          unitPrice: selectedProductType.sellUnitPrice || 0,
+        });
+      }
     }
   }
 
+  checkForDuplicateProduct(productTypeId: string, currentIndex: number): number {
+    for (let i = 0; i < this.orderItems.length; i++) {
+      if (i !== currentIndex) {
+        const item = this.orderItems.at(i);
+        const productType = item.get('productType')?.value;
+
+        if (productType && productType.id === productTypeId) {
+          return i; // Return the index of the duplicate
+        }
+      }
+    }
+    return -1; // No duplicate found
+  }
+
+  closeDuplicateModal() {
+    this.showDuplicateModal = false;
+    this.duplicateProductInfo = null;
+  }
   calculateItemTotal(index: number): number {
     const item = this.orderItems.at(index).value;
     return item.quantity * item.unitPrice;

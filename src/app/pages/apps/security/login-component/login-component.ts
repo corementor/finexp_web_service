@@ -44,6 +44,7 @@ export class LoginComponent {
         // Simulate successful login
         if (email && password) {
           this.toaster.success('Welcome!', 'Login successful');
+          // Navigate to main app (with sidebar)
           this.router.navigate(['/dashboard']);
         } else {
           this.toaster.error('Login Failed', 'Invalid email or password');

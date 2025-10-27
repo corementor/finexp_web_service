@@ -1,92 +1,101 @@
 import { Routes } from '@angular/router';
-import { ProductOrderItem } from './pages/apps/inventory/product-order-item/product-order-item';
-
+import { MainLayout } from './layout/main-layout/main-layout';
+import { AuthLayout } from './layout/authLayout/auth-layout';
 export const routes: Routes = [
+  // Auth routes (without sidebar)
+  {
+    path: 'auth',
+    component: AuthLayout,
+    children: [
+      {
+        path: 'login',
+        loadComponent: () =>
+          import('./pages/apps/security/login-component/login-component').then(
+            (m) => m.LoginComponent
+          ),
+      },
+      {
+        path: '',
+        redirectTo: 'login',
+        pathMatch: 'full',
+      },
+    ],
+  },
+
+  // Main app routes (with sidebar)
   {
     path: '',
-    redirectTo: '/login',
+    component: MainLayout,
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./pages/apps/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        path: 'product-types',
+        loadComponent: () =>
+          import('./pages/apps/inventory/product-type/product-type').then((m) => m.ProductType),
+      },
+      {
+        path: 'purchase-orders',
+        loadComponent: () =>
+          import(
+            './pages/apps/inventory/purchase-orders/purchase-order-list/purchase-order-list'
+          ).then((m) => m.PurchaseOrderList),
+      },
+      {
+        path: 'create-purchase-orders',
+        loadComponent: () =>
+          import(
+            './pages/apps/inventory/purchase-orders/create-purchase-order/create-purchase-order'
+          ).then((m) => m.CreatePurchaseOrder),
+      },
+      {
+        path: 'view-purchase-order',
+        loadComponent: () =>
+          import(
+            './pages/apps/inventory/purchase-orders/view-purchase-order/view-purchase-order'
+          ).then((m) => m.ViewPurchaseOrder),
+      },
+      {
+        path: 'sales-orders',
+        loadComponent: () =>
+          import('./pages/apps/inventory/salesOrder/list-sales-order/list-sales-order').then(
+            (m) => m.ListSalesOrder
+          ),
+      },
+      {
+        path: 'create-sales-order',
+        loadComponent: () =>
+          import('./pages/apps/inventory/salesOrder/create-sales-order/create-sales-order').then(
+            (m) => m.CreateSalesOrder
+          ),
+      },
+      {
+        path: 'view-sales-order',
+        loadComponent: () =>
+          import('./pages/apps/inventory/salesOrder/view-sales-order/view-sales-order').then(
+            (m) => m.ViewSalesOrder
+          ),
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+    ],
+  },
+
+  // Redirect root to auth
+  {
+    path: '',
+    redirectTo: 'auth/login',
     pathMatch: 'full',
   },
 
-  //login route
+  // Wildcard route
   {
-    path: 'login',
-    loadComponent: () =>
-      import('./pages/apps/security/login-component/login-component').then((m) => m.LoginComponent),
-    title: 'Login - FinExp',
-  },
-  //dashboard route
-  {
-    path: 'dashboard',
-    loadComponent: () => import('./pages/apps/dashboard/dashboard').then((m) => m.Dashboard),
-    title: 'Dashboard - FinExp',
-  },
-
-  //product order route
-
-  { path: 'product-order-items', component: ProductOrderItem },
-
-  //product type route
-  {
-    path: 'product-types',
-    loadComponent: () =>
-      import('./pages/apps/inventory/product-type/product-type').then((m) => m.ProductType),
-    title: 'Product Types - FinExp',
-  },
-  //purchase order routes
-  {
-    path: 'purchase-orders',
-    loadComponent: () =>
-      import('./pages/apps/inventory/purchase-orders/purchase-order-list/purchase-order-list').then(
-        (m) => m.PurchaseOrderList
-      ),
-    title: 'Purchase Orders - FinExp',
-  },
-  //create purchase order route
-  {
-    path: 'create-purchase-orders',
-    loadComponent: () =>
-      import(
-        './pages/apps/inventory/purchase-orders/create-purchase-order/create-purchase-order'
-      ).then((m) => m.CreatePurchaseOrder),
-    title: 'Purchase Orders - FinExp',
-  },
-  //view purchase order route
-  {
-    path: 'view-purchase-order',
-    loadComponent: () =>
-      import('./pages/apps/inventory/purchase-orders/view-purchase-order/view-purchase-order').then(
-        (m) => m.ViewPurchaseOrder
-      ),
-    title: 'Purchase Orders - FinExp',
-  },
-
-  //sales order routes
-  //sales order list route
-  {
-    path: 'sales-orders',
-    loadComponent: () =>
-      import('../app/pages/apps/inventory/salesOrder/list-sales-order/list-sales-order').then(
-        (m) => m.ListSalesOrder
-      ),
-    title: 'Sales Orders - FinExp',
-  },
-  //create sales order route
-  {
-    path: 'create-sales-order',
-    loadComponent: () =>
-      import('../app/pages/apps/inventory/salesOrder/create-sales-order/create-sales-order').then(
-        (m) => m.CreateSalesOrder
-      ),
-    title: 'Create Sales Order - FinExp',
-  },
-  //view sales order route
-  {
-    path: 'view-sales-order',
-    loadComponent: () =>
-      import('../app/pages/apps/inventory/salesOrder/view-sales-order/view-sales-order').then(
-        (m) => m.ViewSalesOrder
-      ),
-    title: 'View Sales Order - FinExp',
+    path: '**',
+    redirectTo: 'auth/login',
   },
 ];
