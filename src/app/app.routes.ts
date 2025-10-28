@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { MainLayout } from './layout/main-layout/main-layout';
 import { AuthLayout } from './layout/authLayout/auth-layout';
+import { authGuard } from './pages/apps/security/guards/auth-guard';
+
 export const routes: Routes = [
   // Auth routes (without sidebar)
   {
@@ -22,10 +24,11 @@ export const routes: Routes = [
     ],
   },
 
-  // Main app routes (with sidebar)
+  // Main app routes (with sidebar) - Protected by authGuard
   {
     path: '',
     component: MainLayout,
+    canActivate: [authGuard],
     children: [
       {
         path: 'dashboard',
@@ -86,7 +89,7 @@ export const routes: Routes = [
     ],
   },
 
-  // Redirect root to auth
+  // Redirect root to auth/login
   {
     path: '',
     redirectTo: 'auth/login',

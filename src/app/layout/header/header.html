@@ -62,13 +62,13 @@
             class="flex items-center space-x-3 border-l pl-4 hover:bg-gray-50 rounded-lg transition-colors duration-200 py-2 pr-2"
           >
             <div class="text-right">
-              <p class="text-sm font-medium text-gray-800">Admin User</p>
-              <p class="text-xs text-gray-500">Manager</p>
+              <p class="text-sm font-medium text-gray-800">{{ getUserDisplayName() }}</p>
+              <p class="text-xs text-gray-500">{{ getUserRole() }}</p>
             </div>
             <div
               class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold ring-2 ring-offset-2 ring-blue-200"
             >
-              AU
+              {{ getUserInitials() }}
             </div>
             <!-- Dropdown Arrow -->
             <svg
@@ -99,12 +99,12 @@
                 <div
                   class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg"
                 >
-                  AU
+                  {{ getUserInitials() }}
                 </div>
                 <div>
-                  <p class="text-sm font-semibold text-gray-800">Admin User</p>
-                  <p class="text-xs text-gray-500">admin@finxp.com</p>
-                  <p class="text-xs text-gray-400 mt-0.5">Manager</p>
+                  <p class="text-sm font-semibold text-gray-800">{{ getUserDisplayName() }}</p>
+                  <p class="text-xs text-gray-500">{{ getUserEmail() }}</p>
+                  <p class="text-xs text-gray-400 mt-0.5">{{ getUserRole() }}</p>
                 </div>
               </div>
             </div>
@@ -243,11 +243,11 @@
           <div
             class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold"
           >
-            AU
+            {{ getUserInitials() }}
           </div>
           <div>
-            <p class="text-sm font-medium text-gray-800">Admin User</p>
-            <p class="text-xs text-gray-500">Manager</p>
+            <p class="text-sm font-medium text-gray-800">{{ getUserDisplayName() }}</p>
+            <p class="text-xs text-gray-500">{{ getUserRole() }}</p>
           </div>
         </div>
       </div>

@@ -2,7 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToasterService } from '../../../../services/toaster.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../service/auth-service';
+
 @Component({
   selector: 'app-login-component',
   standalone: true,
@@ -14,9 +16,19 @@ export class LoginComponent {
   loginForm: FormGroup;
   isSubmitting = false;
   showPassword = false;
+  returnUrl: string = '/dashboard';
 
-  constructor(private fb: FormBuilder, private router: Router, private toaster: ToasterService) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute,
+    private toaster: ToasterService,
+    private authService: AuthService
+  ) {
     this.loginForm = this.createForm();
+
+    // Get return URL from route parameters or default to '/dashboard'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   }
 
   createForm(): FormGroup {
@@ -34,22 +46,21 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.valid) {
       this.isSubmitting = true;
-      const { email, password, rememberMe } = this.loginForm.value;
+      const { email, password } = this.loginForm.value;
 
-      // TODO: Replace with your authentication service
-      // Simulating login for now
-      setTimeout(() => {
-        this.isSubmitting = false;
-
-        // Simulate successful login
-        if (email && password) {
-          this.toaster.success('Welcome!', 'Login successful');
-          // Navigate to main app (with sidebar)
-          this.router.navigate(['/dashboard']);
-        } else {
-          this.toaster.error('Login Failed', 'Invalid email or password');
-        }
-      }, 1500);
+      this.authService.login(email, password).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.toaster.success('Welcome!', response.message || 'Login successful');
+          // Navigate to the return URL or dashboard
+          this.router.navigate([this.returnUrl]);
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          const errorMessage = error.error?.message || 'Invalid email or password';
+          this.toaster.error('Login Failed', errorMessage);
+        },
+      });
     } else {
       this.markFormGroupTouched(this.loginForm);
       this.toaster.warning('Form Validation', 'Please fill in all required fields correctly');
