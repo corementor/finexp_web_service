@@ -40,51 +40,53 @@ export const routes: Routes = [
           import('./pages/apps/inventory/product-type/product-type').then((m) => m.ProductType),
       },
       {
-        path: 'purchase-orders',
+        path: 'purchase-orders/list',
         loadComponent: () =>
           import(
             './pages/apps/inventory/purchase-orders/purchase-order-list/purchase-order-list'
           ).then((m) => m.PurchaseOrderList),
       },
       {
-        path: 'create-purchase-orders',
+        path: 'purchase-orders/create-purchase-orders',
         loadComponent: () =>
           import(
             './pages/apps/inventory/purchase-orders/create-purchase-order/create-purchase-order'
           ).then((m) => m.CreatePurchaseOrder),
       },
       {
-        path: 'view-purchase-order',
+        path: 'purchase-orders/view-purchase-order',
         loadComponent: () =>
           import(
             './pages/apps/inventory/purchase-orders/view-purchase-order/view-purchase-order'
           ).then((m) => m.ViewPurchaseOrder),
       },
       {
-        path: 'sales-orders',
+        path: 'purchase-orders/purchase-order-history/:id',
+        loadComponent: () =>
+          import(
+            './pages/apps/inventory/purchase-orders/purchase-order-history/purchase-order-history'
+          ).then((m) => m.PurchaseOrderHistory),
+      },
+      {
+        path: 'sales-orders/list',
         loadComponent: () =>
           import('./pages/apps/inventory/salesOrder/list-sales-order/list-sales-order').then(
             (m) => m.ListSalesOrder
           ),
       },
       {
-        path: 'create-sales-order',
+        path: 'sales-orders/create-sales-order',
         loadComponent: () =>
           import('./pages/apps/inventory/salesOrder/create-sales-order/create-sales-order').then(
             (m) => m.CreateSalesOrder
           ),
       },
       {
-        path: 'view-sales-order',
+        path: 'sales-orders/view-sales-order',
         loadComponent: () =>
           import('./pages/apps/inventory/salesOrder/view-sales-order/view-sales-order').then(
             (m) => m.ViewSalesOrder
           ),
-      },
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full',
       },
     ],
   },

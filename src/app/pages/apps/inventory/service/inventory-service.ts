@@ -7,10 +7,10 @@ import { GenericDeserializer } from '../../../../common/dto/util/generic-deseria
 import { environment } from '../../../../environment/environment';
 import { Response } from '../../../../common/dto/util/response';
 import { PurchaseOrderDto } from '../../../../common/dto/inventory/purchase-order-dto';
-import { ProductOrderItem } from '../product-order-item/product-order-item';
 import { ProductOrderItemDto } from '../../../../common/dto/inventory/product-order-item-dto';
 const API_PRODUCT_TYPE_URL = `${environment.API}/productType`;
 const API_PRODUCT_ORDER_ITEM_URL = `${environment.API}/productOrderItem`;
+const API_PURCHASE_ORDER_HISTORY_URL = `${environment.API}/purchaseOrderHistory`;
 @Injectable({
   providedIn: 'root',
 })

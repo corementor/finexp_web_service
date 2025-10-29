@@ -45,7 +45,7 @@ export class ListSalesOrder implements OnInit {
     this.loadSalesOrders();
   }
   viewOrderDetails(order: SalesOrderDTO) {
-    this.router.navigate(['/view-sales-order'], { state: { order: order } });
+    this.router.navigate(['/sales-orders/view-sales-order'], { state: { order: order } });
   }
   loadSalesOrders() {
     this.isLoading = true;
@@ -66,7 +66,7 @@ export class ListSalesOrder implements OnInit {
     });
   }
   createNewOrder() {
-    this.router.navigate(['/create-sales-order']);
+    this.router.navigate(['/sales-orders/create-sales-order']);
   }
   formatDate(dateString: string | undefined): string {
     if (!dateString) return '';

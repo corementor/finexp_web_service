@@ -1,14 +1,21 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PurchaseOrderDto } from '../../../../../common/dto/inventory/purchase-order-dto';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { environment } from '../../../../../environment/environment';
+import { PurchaseOrderHistoryDto } from '../../../../../common/dto/inventory/purchase-order-history';
+import { GenericDeserializer } from '../../../../../common/dto/util/generic-deserializer';
+import { Response } from '../../../../../common/dto/util/response';
 const API_PURCHASE_ORDER_URL = `${environment.API}/purchaseOrder`;
+const API_PURCHASE_ORDER_HISTORY_URL = `${environment.API}/purchaseOrder/history`;
 @Injectable({
   providedIn: 'root',
 })
 export class PurchaseOrderService {
   private apiUrl = API_PURCHASE_ORDER_URL;
+  private apiHistoryUrl = API_PURCHASE_ORDER_HISTORY_URL;
+  private genericDeserializer: GenericDeserializer = new GenericDeserializer();
+
   constructor(private http: HttpClient) {}
 
   createPurchaseOrder(purchaseOrder: PurchaseOrderDto): Observable<any> {
@@ -32,5 +39,22 @@ export class PurchaseOrderService {
   }
   deletePurchaseOrder(order: PurchaseOrderDto): Observable<any> {
     return this.http.post(`${this.apiUrl}/delete`, order, { observe: 'response' });
+  }
+
+  getPurchaseOrderHistory(purchaseOrderId: string): Observable<any> {
+    return this.http
+      .get<any>(`${this.apiHistoryUrl}/${purchaseOrderId}`, { observe: 'response' })
+      .pipe(map((response: HttpResponse<any>) => response.body));
+  }
+  getAllPurchaseOrderHistory(purchaseOrderId: string): Observable<PurchaseOrderHistoryDto[]> {
+    return this.http.get<Response>(`${this.apiHistoryUrl}/${purchaseOrderId}`).pipe(
+      map((response) =>
+        this.genericDeserializer.deserializeJsonArray(response.data, PurchaseOrderHistoryDto)
+      ),
+      catchError((error) => {
+        console.error('Error fetching purchase order history:', error);
+        return throwError(() => new Error('Failed to fetch purchase order history'));
+      })
+    );
   }
 }

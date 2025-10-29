@@ -11,7 +11,7 @@ export abstract class AbstractBaseDto {
   createdBy?: String;
 
   /** The created date. */
-  createdAt: String = new Date().toISOString();
+  createdAt: string = new Date().toISOString();
 
   /** The modified by. */
   modifiedBy?: String;

@@ -30,7 +30,7 @@ export class Sidebar {
       label: 'Purchase Orders',
       active: false,
       badge: '12',
-      routerLink: '/purchase-orders',
+      routerLink: '/purchase-orders/list',
     },
 
     {
@@ -38,13 +38,12 @@ export class Sidebar {
       label: 'Sales Orders',
       active: false,
       badge: null,
-      routerLink: '/sales-orders',
+      routerLink: '/sales-orders/list',
     },
   ];
 
   onMenuItemClick(item: any) {
     this.selectItem(this.menuItems.indexOf(item));
-    // Remove console.log and any navigation logic - let RouterLink handle it
   }
 
   selectItem(index: number) {

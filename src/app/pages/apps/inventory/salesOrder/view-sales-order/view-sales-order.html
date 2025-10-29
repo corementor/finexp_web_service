@@ -862,4 +862,123 @@
       </div>
     </div>
   </div>
+  <!-- Duplicate Product Modal -->
+  <div
+    *ngIf="showDuplicateModal"
+    class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 transition-all duration-200"
+  >
+    <div class="relative top-20 mx-auto p-0 border w-[500px] shadow-2xl rounded-lg bg-white/95">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 rounded-t-lg">
+        <div class="flex items-center">
+          <svg
+            class="h-8 w-8 text-white mr-3"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <div>
+            <h3 class="text-lg font-bold text-white">Duplicate Product Not Allowed</h3>
+            <p class="text-sm text-red-100 mt-0.5">This product is already in the order</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6" *ngIf="duplicateProductInfo">
+        <div class="mb-6">
+          <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg
+                  class="h-5 w-5 text-red-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-red-700 font-medium">
+                  <strong>{{ duplicateProductInfo.productName }}</strong> is already added at
+                  <strong>Row {{ duplicateProductInfo.existingIndex + 1 }}</strong>
+                </p>
+                <p class="text-sm text-red-600 mt-2">
+                  You cannot add the same product twice. If you need to increase the quantity,
+                  please edit the existing row.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg
+                class="h-5 w-5 text-blue-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div class="ml-3 flex-1">
+              <p class="text-sm text-blue-700">
+                <strong>Tip:</strong> To modify quantities or prices for this product, click the
+                edit button (pencil icon) at Row {{ duplicateProductInfo.existingIndex + 1 }} in the
+                table above.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Close Button -->
+        <div class="flex justify-end">
+          <button
+            type="button"
+            (click)="closeDuplicateModal()"
+            class="px-6 py-2.5 bg-blue-600 border border-transparent rounded-lg text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-sm"
+          >
+            <span class="flex items-center">
+              <svg
+                class="h-5 w-5 mr-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Got It
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

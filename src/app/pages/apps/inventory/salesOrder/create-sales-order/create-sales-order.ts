@@ -172,7 +172,7 @@ export class CreateSalesOrder {
           if (response.status >= 200 && response.status < 300) {
             this.toaster.success('Sales Order', 'Created successfully');
             setTimeout(() => {
-              this.router.navigate(['/sales-orders']);
+              this.router.navigate(['/sales-orders/list']);
             }, 1000);
           } else {
             this.toaster.error('Sales Order', 'Failed to create sales order');
@@ -195,7 +195,7 @@ export class CreateSalesOrder {
   }
 
   onCancel() {
-    this.router.navigate(['/sales-orders']);
+    this.router.navigate(['/sales-orders/list']);
   }
 
   private markFormGroupTouched(formGroup: FormGroup | FormArray) {

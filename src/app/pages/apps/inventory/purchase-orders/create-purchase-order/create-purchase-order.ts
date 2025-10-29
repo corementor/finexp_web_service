@@ -7,6 +7,7 @@ import { PurchaseOrderService } from '../service/purchase-order-service';
 import { ProductTypeDto } from '../../../../../common/dto/inventory/productType-dto';
 import { ToasterService } from '../../../../../services/toaster.service';
 import { PurchaseOrderDto } from '../../../../../common/dto/inventory/purchase-order-dto';
+import { AuthService } from '../../../security/service/auth-service';
 @Component({
   selector: 'app-create-purchase-order',
   imports: [CommonModule, ReactiveFormsModule],
@@ -29,6 +30,7 @@ export class CreatePurchaseOrder {
     private fb: FormBuilder,
     private inventoryService: InventoryService,
     private purchaseOrderService: PurchaseOrderService,
+    private authService: AuthService,
     private router: Router,
     private toaster: ToasterService
   ) {
@@ -37,6 +39,9 @@ export class CreatePurchaseOrder {
 
   ngOnInit() {
     this.loadProductTypes();
+    this.authService.currentUser$.subscribe((user) => {
+      console.log('Current User:', user);
+    });
   }
 
   createForm(): FormGroup {
@@ -165,6 +170,7 @@ export class CreatePurchaseOrder {
 
       const purchaseOrder: PurchaseOrderDto = {
         createdAt: new Date().toISOString(),
+        createdBy: this.authService.getCurrentUser()?.fullName || 'unknown',
         purchaseDate: formData.purchaseDate,
         orderItems: formData.orderItems.map((item: any) => {
           const subtotal = item.quantity * item.unitPrice;
@@ -196,7 +202,7 @@ export class CreatePurchaseOrder {
           if (response.status >= 200 && response.status < 300) {
             this.toaster.success('Purchase Order', 'Created successfully');
             setTimeout(() => {
-              this.router.navigate(['/purchase-orders']);
+              this.router.navigate(['/purchase-orders/list']);
             }, 1000);
           } else {
             this.toaster.error('Purchase Order', 'Failed to create purchase order');
@@ -219,7 +225,7 @@ export class CreatePurchaseOrder {
   }
 
   onCancel() {
-    this.router.navigate(['/purchase-orders']);
+    this.router.navigate(['/purchase-orders/list']);
   }
 
   private markFormGroupTouched(formGroup: FormGroup | FormArray) {

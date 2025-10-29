@@ -44,6 +44,13 @@ export class ViewPurchaseOrder implements OnInit {
   showAddItemModal = false;
   addItemForm: FormGroup | null = null;
 
+  showDuplicateModal = false;
+  duplicateProductInfo: {
+    productName: string;
+    existingIndex: number;
+    newIndex: number;
+  } | null = null;
+
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
@@ -60,7 +67,7 @@ export class ViewPurchaseOrder implements OnInit {
   ngOnInit() {
     if (!this.order) {
       this.toaster.warning('Navigation Error', 'No order data found. Redirecting to list...');
-      this.router.navigate(['/purchase-orders']);
+      this.router.navigate(['/purchase-orders/list']);
       return;
     }
     this.loadProductTypes();
@@ -211,7 +218,7 @@ export class ViewPurchaseOrder implements OnInit {
   }
 
   onBack() {
-    this.router.navigate(['/purchase-orders']);
+    this.router.navigate(['/purchase-orders/list']);
   }
 
   initializeInlineForm(item: ProductOrderItemDto) {
@@ -332,13 +339,57 @@ export class ViewPurchaseOrder implements OnInit {
     const selectedProductType: ProductTypeDto = this.addItemForm.get('productType')?.value;
 
     if (selectedProductType) {
-      this.addItemForm.patchValue({
-        unitPrice: selectedProductType.unitPrice || 0,
-        taxAmount: 0,
-      });
+      // Check for duplicates in existing order items
+      const duplicateIndex = this.checkForDuplicateInOrder(selectedProductType.id!);
+
+      if (duplicateIndex !== -1) {
+        // Duplicate found - show modal and clear selection
+        this.duplicateProductInfo = {
+          productName: selectedProductType.productName || 'Unknown Product',
+          existingIndex: duplicateIndex,
+          newIndex: -1, // Not applicable for add modal
+        };
+        this.showDuplicateModal = true;
+
+        // Clear the duplicate selection immediately
+        this.addItemForm.patchValue({
+          productType: null,
+          unitPrice: 0,
+          taxAmount: 0,
+        });
+
+        // Show error toast
+        this.toaster.error(
+          'Duplicate Product Not Allowed',
+          `${selectedProductType.productName} is already in the order at row ${
+            duplicateIndex + 1
+          }. Please select a different product.`
+        );
+      } else {
+        // No duplicate, proceed with auto-fill
+        this.addItemForm.patchValue({
+          unitPrice: selectedProductType.unitPrice || 0,
+          taxAmount: 0,
+        });
+      }
     }
   }
+  checkForDuplicateInOrder(productTypeId: string): number {
+    if (!this.order?.orderItems) return -1;
 
+    for (let i = 0; i < this.order.orderItems.length; i++) {
+      const item = this.order.orderItems[i];
+      if (item.productType?.id === productTypeId) {
+        return i; // Return the index of the duplicate
+      }
+    }
+    return -1; // No duplicate found
+  }
+
+  closeDuplicateModal() {
+    this.showDuplicateModal = false;
+    this.duplicateProductInfo = null;
+  }
   calculateAddItemTotal(): number {
     if (!this.addItemForm) return 0;
     const values = this.addItemForm.value;

@@ -27,6 +27,9 @@ export class PurchaseOrderList implements OnInit {
   showDeleteModal = false;
   orderToDelete?: PurchaseOrderDto;
 
+  // Add this property for managing dropdown
+  openDropdownIndex: number | null = null;
+
   constructor(
     private purchaseOrderService: PurchaseOrderService,
     private toaster: ToasterService,
@@ -57,7 +60,7 @@ export class PurchaseOrderList implements OnInit {
   }
 
   createNewOrder() {
-    this.router.navigate(['/create-purchase-orders']);
+    this.router.navigate(['/purchase-orders/create-purchase-orders']);
   }
 
   calculateTotalItems(order: PurchaseOrderDto): number {
@@ -70,11 +73,25 @@ export class PurchaseOrderList implements OnInit {
   }
 
   viewOrderDetails(order: PurchaseOrderDto) {
-    this.router.navigate(['/view-purchase-order'], {
+    this.openDropdownIndex = null; // Close dropdown
+    this.router.navigate(['/purchase-orders/view-purchase-order'], {
       state: {
         order: order,
       },
     });
+  }
+
+  viewOrderHistory(order: PurchaseOrderDto) {
+    this.openDropdownIndex = null; // Close dropdown
+    this.router.navigate(['/purchase-orders/purchase-order-history', order.id]);
+  }
+
+  toggleDropdown(index: number) {
+    this.openDropdownIndex = this.openDropdownIndex === index ? null : index;
+  }
+
+  closeDropdown() {
+    this.openDropdownIndex = null;
   }
 
   get filteredOrders(): PurchaseOrderDto[] {
@@ -153,13 +170,16 @@ export class PurchaseOrderList implements OnInit {
   }
 
   deletePurchaseOrder(order: PurchaseOrderDto) {
+    this.openDropdownIndex = null; // Close dropdown
     this.orderToDelete = order;
     this.showDeleteModal = true;
   }
+
   closeDeleteModal() {
     this.showDeleteModal = false;
     this.orderToDelete = undefined;
   }
+
   confirmDeletePurchaseOrder() {
     if (!this.orderToDelete?.id) {
       this.toaster.error('Delete Error', 'Invalid purchase order');

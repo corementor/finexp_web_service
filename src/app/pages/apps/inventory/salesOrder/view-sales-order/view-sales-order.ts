@@ -44,7 +44,13 @@ export class ViewSalesOrder implements OnInit {
   // Add these new properties
   showAddItemModal = false;
   addItemForm: FormGroup | null = null;
-
+  // Add these properties after the existing properties
+  showDuplicateModal = false;
+  duplicateProductInfo: {
+    productName: string;
+    existingIndex: number;
+    newIndex: number;
+  } | null = null;
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
@@ -61,7 +67,7 @@ export class ViewSalesOrder implements OnInit {
   ngOnInit() {
     if (!this.order) {
       this.toaster.warning('Navigation Error', 'No order data found. Redirecting to list...');
-      this.router.navigate(['/sales-orders']);
+      this.router.navigate(['/sales-orders/list']);
       return;
     }
     this.loadProductTypes();
@@ -245,16 +251,81 @@ export class ViewSalesOrder implements OnInit {
     this.addItemForm = null;
   }
 
+  // Update the onAddItemProductTypeChange method
   onAddItemProductTypeChange() {
     if (!this.addItemForm) return;
 
     const selectedProductType: ProductTypeDto = this.addItemForm.get('productType')?.value;
 
     if (selectedProductType) {
-      this.addItemForm.patchValue({
-        unitPrice: selectedProductType.sellUnitPrice || 0,
-      });
+      // Check for duplicates in existing order items
+      const duplicateIndex = this.checkForDuplicateInOrder(selectedProductType.id!);
+
+      if (duplicateIndex !== -1) {
+        // Duplicate found - show modal and clear selection
+        this.duplicateProductInfo = {
+          productName: selectedProductType.productName || 'Unknown Product',
+          existingIndex: duplicateIndex,
+          newIndex: -1, // Not applicable for add modal
+        };
+        this.showDuplicateModal = true;
+
+        // Clear the duplicate selection immediately
+        this.addItemForm.patchValue({
+          productType: null,
+          unitPrice: 0,
+        });
+
+        // Show error toast
+        this.toaster.error(
+          'Duplicate Product Not Allowed',
+          `${selectedProductType.productName} is already in the order at row ${
+            duplicateIndex + 1
+          }. Please select a different product.`
+        );
+      } else {
+        // No duplicate, proceed with auto-fill
+        this.addItemForm.patchValue({
+          unitPrice: selectedProductType.sellUnitPrice || 0,
+        });
+      }
     }
+  }
+
+  // Add this new method
+  checkForDuplicateInOrder(productTypeId: string): number {
+    if (!this.order?.orderItems) return -1;
+
+    for (let i = 0; i < this.order.orderItems.length; i++) {
+      const item = this.order.orderItems[i];
+      if (item.productType?.id === productTypeId) {
+        return i; // Return the index of the duplicate
+      }
+    }
+    return -1; // No duplicate found
+  }
+
+  // Add this new method
+  closeDuplicateModal() {
+    this.showDuplicateModal = false;
+    this.duplicateProductInfo = null;
+  }
+
+  // Update the onProductTypeChange method for bulk edit mode
+
+  // Add this new method for checking duplicates in form array
+  checkForDuplicateInFormArray(productTypeId: string, currentIndex: number): number {
+    for (let i = 0; i < this.orderItems.length; i++) {
+      if (i !== currentIndex) {
+        const item = this.orderItems.at(i);
+        const productType = item.get('productType')?.value;
+
+        if (productType && productType.id === productTypeId) {
+          return i; // Return the index of the duplicate
+        }
+      }
+    }
+    return -1; // No duplicate found
   }
 
   calculateAddItemTotal(): number {
@@ -316,7 +387,7 @@ export class ViewSalesOrder implements OnInit {
   }
 
   onBack() {
-    this.router.navigate(['/sales-orders']);
+    this.router.navigate(['/sales-orders/list']);
   }
 
   toggleEdit() {
