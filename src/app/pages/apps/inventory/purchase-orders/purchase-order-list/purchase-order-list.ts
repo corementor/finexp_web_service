@@ -18,7 +18,7 @@ export class PurchaseOrderList implements OnInit {
   isLoading = false;
   searchTerm: string = '';
   currentPage: number = 1;
-  itemsPerPage: number = 5;
+  itemsPerPage: number = 10;
   sortColumn: string = 'saleDate';
   sortDirection: 'asc' | 'desc' = 'desc';
   dateFilter: string = '';
@@ -131,6 +131,9 @@ export class PurchaseOrderList implements OnInit {
           break;
         case 'totalPrice':
           comparison = (a.totalPrice || 0) - (b.totalPrice || 0);
+          break;
+        case 'status':
+          comparison = (a.status || '').toString().localeCompare((b.status || '').toString());
           break;
       }
       return this.sortDirection === 'asc' ? comparison : -comparison;

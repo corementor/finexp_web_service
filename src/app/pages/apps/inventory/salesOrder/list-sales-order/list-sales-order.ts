@@ -131,6 +131,9 @@ export class ListSalesOrder implements OnInit {
         case 'totalPrice':
           comparison = (a.totalPrice || 0) - (b.totalPrice || 0);
           break;
+        case 'status':
+          comparison = (a.status || '').toString().localeCompare((b.status || '').toString());
+          break;
       }
       return this.sortDirection === 'asc' ? comparison : -comparison;
     });

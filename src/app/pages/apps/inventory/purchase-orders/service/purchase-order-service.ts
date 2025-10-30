@@ -6,8 +6,11 @@ import { environment } from '../../../../../environment/environment';
 import { PurchaseOrderHistoryDto } from '../../../../../common/dto/inventory/purchase-order-history';
 import { GenericDeserializer } from '../../../../../common/dto/util/generic-deserializer';
 import { Response } from '../../../../../common/dto/util/response';
+import { RequestDto } from '../../../../../common/dto/util/request-dto';
+
 const API_PURCHASE_ORDER_URL = `${environment.API}/purchaseOrder`;
 const API_PURCHASE_ORDER_HISTORY_URL = `${environment.API}/purchaseOrder/history`;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -54,6 +57,39 @@ export class PurchaseOrderService {
       catchError((error) => {
         console.error('Error fetching purchase order history:', error);
         return throwError(() => new Error('Failed to fetch purchase order history'));
+      })
+    );
+  }
+
+  // Approval workflow methods
+  submitForApproval(requestDto: RequestDto): Observable<any> {
+    return this.http
+      .post(`${this.apiUrl}/submitForApproval`, requestDto, { observe: 'response' })
+      .pipe(
+        map((response: HttpResponse<any>) => response.body),
+        catchError((error) => {
+          console.error('Error submitting for approval:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  approvePurchaseOrder(requestDto: RequestDto): Observable<any> {
+    return this.http.post(`${this.apiUrl}/approveOrder`, requestDto, { observe: 'response' }).pipe(
+      map((response: HttpResponse<any>) => response.body),
+      catchError((error) => {
+        console.error('Error approving purchase order:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  returnPurchaseOrder(requestDto: RequestDto): Observable<any> {
+    return this.http.post(`${this.apiUrl}/returnOrder`, requestDto, { observe: 'response' }).pipe(
+      map((response: HttpResponse<any>) => response.body),
+      catchError((error) => {
+        console.error('Error returning purchase order:', error);
+        return throwError(() => error);
       })
     );
   }
