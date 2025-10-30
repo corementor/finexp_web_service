@@ -16,6 +16,8 @@ import { ProductTypeDto } from '../../../../../common/dto/inventory/productType-
 import { SalesOrderService } from '../service/sales-order-service';
 import { Response } from '../../../../../common/dto/util/response';
 import { ToasterService } from '../../../../../services/toaster.service';
+import { EOrderHistoryStatus } from '../../../../../common/dto/util/e-order-history-status';
+import { AuthService } from '../../../security/service/auth-service';
 
 @Component({
   selector: 'app-view-sales-order',
@@ -51,13 +53,21 @@ export class ViewSalesOrder implements OnInit {
     existingIndex: number;
     newIndex: number;
   } | null = null;
+
+  showSubmitModal = false;
+  showApproveModal = false;
+  showReturnModal = false;
+  approvalComment = '';
+  isProcessingApproval = false;
+
   constructor(
     private router: Router,
     private inventoryService: InventoryService,
     private salesOrderService: SalesOrderService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
-    private toaster: ToasterService
+    private toaster: ToasterService,
+    private authService: AuthService
   ) {
     const navigation = this.router.getCurrentNavigation();
     this.order = navigation?.extras?.state?.['order'];
@@ -543,5 +553,174 @@ export class ViewSalesOrder implements OnInit {
         }
       },
     });
+  }
+  openSubmitModal() {
+    this.showSubmitModal = true;
+    this.approvalComment = '';
+  }
+
+  closeSubmitModal() {
+    this.showSubmitModal = false;
+    this.approvalComment = '';
+  }
+  closeApproveModal() {
+    this.showApproveModal = false;
+    this.approvalComment = '';
+  }
+  submitForApproval() {
+    if (!this.order?.id) {
+      this.toaster.error('Submit Error', 'Order ID not found');
+      return;
+    }
+
+    this.isProcessingApproval = true;
+    this.salesOrderService
+      .submitForApproval({
+        id: this.order.id,
+        comment: this.approvalComment || undefined,
+      })
+      .subscribe({
+        next: (response) => {
+          this.isProcessingApproval = false;
+          if (response && response.status === 0) {
+            this.toaster.success('Submitted', 'Purchase order submitted for approval successfully');
+            this.closeSubmitModal();
+            // Update local status
+            if (this.order) {
+              this.order.status = EOrderHistoryStatus.SUBMITTED;
+            }
+            this.cdr.detectChanges();
+          } else {
+            this.toaster.error(
+              'Submit Failed',
+              response?.message || 'Failed to submit for approval'
+            );
+          }
+        },
+        error: (error) => {
+          this.isProcessingApproval = false;
+          this.toaster.error('Submit Error', error.message || 'Failed to submit for approval');
+          console.error('Error submitting for approval:', error);
+        },
+      });
+  }
+
+  openApproveModal() {
+    this.showApproveModal = true;
+    this.approvalComment = '';
+  }
+  openReturnModal() {
+    this.showReturnModal = true;
+    this.approvalComment = '';
+  }
+
+  closeReturnModal() {
+    this.showReturnModal = false;
+    this.approvalComment = '';
+  }
+
+  approveSalesOrder() {
+    if (!this.order?.id) {
+      this.toaster.error('Approve Error', 'Order ID not found');
+      return;
+    }
+
+    if (!this.approvalComment || this.approvalComment.trim() === '') {
+      this.toaster.warning('Comment Required', 'Please provide a comment for approval');
+      return;
+    }
+
+    this.isProcessingApproval = true;
+    this.salesOrderService
+      .approveSalesOrder({
+        id: this.order.id,
+        comment: this.approvalComment,
+      })
+      .subscribe({
+        next: (response) => {
+          this.isProcessingApproval = false;
+          if (response && response.status === 0) {
+            this.toaster.success('Approved', 'Purchase order approved successfully');
+            this.closeApproveModal();
+            // Update local status
+            if (this.order) {
+              this.order.status = EOrderHistoryStatus.APPROVED;
+            }
+            this.cdr.detectChanges();
+          } else {
+            this.toaster.error(
+              'Approve Failed',
+              response?.message || 'Failed to approve purchase order'
+            );
+          }
+        },
+        error: (error) => {
+          this.isProcessingApproval = false;
+          this.toaster.error('Approve Error', error.message || 'Failed to approve purchase order');
+          console.error('Error approving purchase order:', error);
+        },
+      });
+  }
+
+  returnPurchaseOrder() {
+    if (!this.order?.id) {
+      this.toaster.error('Return Error', 'Order ID not found');
+      return;
+    }
+
+    if (!this.approvalComment || this.approvalComment.trim() === '') {
+      this.toaster.warning('Reason Required', 'Please provide a reason for returning');
+      return;
+    }
+
+    this.isProcessingApproval = true;
+    this.salesOrderService
+      .returnSalesOrder({
+        id: this.order.id,
+        comment: this.approvalComment,
+      })
+      .subscribe({
+        next: (response) => {
+          this.isProcessingApproval = false;
+          if (response && response.status === 0) {
+            this.toaster.success('Returned', 'Purchase order returned successfully');
+            this.closeReturnModal();
+            // Update local status
+            if (this.order) {
+              this.order.status = EOrderHistoryStatus.RETURNED;
+            }
+            this.cdr.detectChanges();
+          } else {
+            this.toaster.error(
+              'Return Failed',
+              response?.message || 'Failed to return purchase order'
+            );
+          }
+        },
+        error: (error) => {
+          this.isProcessingApproval = false;
+          this.toaster.error('Return Error', error.message || 'Failed to return purchase order');
+          console.error('Error returning purchase order:', error);
+        },
+      });
+  }
+
+  canSubmitForApproval(): boolean {
+    return this.order?.status === EOrderHistoryStatus.CREATED;
+  }
+
+  canApproveOrReturn(): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    const isAdmin = currentUser?.role === 'ADMIN';
+    return isAdmin && this.order?.status === EOrderHistoryStatus.SUBMITTED;
+  }
+  canEditOrder(): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    const isAdmin = currentUser?.role === 'ADMIN';
+    return (
+      isAdmin &&
+      (this.order?.status === EOrderHistoryStatus.CREATED ||
+        this.order?.status === EOrderHistoryStatus.RETURNED)
+    );
   }
 }

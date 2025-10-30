@@ -125,6 +125,7 @@ export class ViewPurchaseOrder implements OnInit {
     if (this.order?.orderItems) {
       const itemsFormArray = this.orderForm.get('orderItems') as FormArray;
       itemsFormArray.clear();
+      this.order.modifiedBy = this.authService.getCurrentUser()?.fullName || 'N/A';
 
       this.order.orderItems.forEach((item) => {
         const productType = this.productTypes.find((pt) => pt.id === item.productType?.id);

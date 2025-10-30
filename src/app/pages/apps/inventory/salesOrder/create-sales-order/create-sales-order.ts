@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToasterService } from '../../../../../services/toaster.service';
+import { AuthService } from '../../../security/service/auth-service';
 
 @Component({
   selector: 'app-create-sales-order',
@@ -33,7 +34,8 @@ export class CreateSalesOrder {
     private inventoryService: InventoryService,
     private salesOrderService: SalesOrderService,
     private router: Router,
-    private toaster: ToasterService
+    private toaster: ToasterService,
+    private authService: AuthService
   ) {
     this.salesOrderForm = this.createForm();
   }
@@ -152,6 +154,7 @@ export class CreateSalesOrder {
 
       const salesOrder: SalesOrderDTO = {
         createdAt: new Date().toISOString(),
+        createdBy: this.authService.getCurrentUser()?.fullName || 'Unknown',
         saleDate: formData.saleDate,
         totalPrice: this.calculateGrandTotal(),
         orderItems: formData.orderItems.map((item: any) => ({

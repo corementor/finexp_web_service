@@ -27,7 +27,6 @@ export class PurchaseOrderList implements OnInit {
   showDeleteModal = false;
   orderToDelete?: PurchaseOrderDto;
 
-  // Add this property for managing dropdown
   openDropdownIndex: number | null = null;
 
   constructor(

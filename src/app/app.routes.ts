@@ -68,6 +68,14 @@ export const routes: Routes = [
           ).then((m) => m.PurchaseOrderHistory),
       },
       {
+        path: 'sales-orders/sales-order-history/:id',
+        loadComponent: () =>
+          import('./pages/apps/inventory/salesOrder/sales-order-history/sales-order-history').then(
+            (m) => m.SalesOrderHistory
+          ),
+      },
+
+      {
         path: 'sales-orders/list',
         loadComponent: () =>
           import('./pages/apps/inventory/salesOrder/list-sales-order/list-sales-order').then(
