@@ -184,11 +184,7 @@ export class ListUser implements OnInit {
 
   viewUserDetails(user: UserDTO) {
     this.openDropdownIndex = null; // Close dropdown
-    this.router.navigate(['/usermanagement/view-user'], {
-      state: {
-        user: user,
-      },
-    });
+    this.router.navigate(['/usermanagement/view-user', user.id]);
   }
 
   deleteUser(user: UserDTO) {

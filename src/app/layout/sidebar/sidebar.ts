@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../pages/apps/security/service/auth-service';
 import { Subscription } from 'rxjs';
 import { PurchaseOrderService } from '../../pages/apps/inventory/purchase-orders/service/purchase-order-service';
+import { SalesOrderService } from '../../pages/apps/inventory/salesOrder/service/sales-order-service';
 
 interface MenuItem {
   icon: string;
@@ -11,7 +12,7 @@ interface MenuItem {
   active: boolean;
   badge?: string | null;
   routerLink: string;
-  roles: string[]; // Add roles that can see this menu item
+  roles: string[];
 }
 
 @Component({
@@ -25,7 +26,6 @@ export class Sidebar implements OnInit, OnDestroy {
   private userSubscription?: Subscription;
   currentUserRole: string = '';
 
-  // Define all possible menu items with their allowed roles
   allMenuItems: MenuItem[] = [
     {
       icon: '📊',
@@ -33,7 +33,7 @@ export class Sidebar implements OnInit, OnDestroy {
       active: false,
       badge: null,
       routerLink: '/dashboard',
-      roles: ['ADMIN', 'STOCK_OFFICER', 'MANAGER', 'USER'], // All roles can see dashboard
+      roles: ['ADMIN', 'STOCK_OFFICER', 'MANAGER', 'USER'],
     },
     {
       icon: '🗂️',
@@ -41,7 +41,7 @@ export class Sidebar implements OnInit, OnDestroy {
       active: false,
       badge: null,
       routerLink: '/product-types',
-      roles: ['ADMIN', 'STOCK_OFFICER', 'MANAGER'], // Only these roles can manage products
+      roles: ['ADMIN', 'STOCK_OFFICER', 'MANAGER'],
     },
     {
       icon: '🛒',
@@ -49,7 +49,7 @@ export class Sidebar implements OnInit, OnDestroy {
       active: false,
       badge: null,
       routerLink: '/purchase-orders/list',
-      roles: ['ADMIN', 'STOCK_OFFICER'], // Only ADMIN and STOCK_OFFICER
+      roles: ['ADMIN', 'STOCK_OFFICER'],
     },
     {
       icon: '👥',
@@ -57,32 +57,32 @@ export class Sidebar implements OnInit, OnDestroy {
       active: false,
       badge: null,
       routerLink: '/sales-orders/list',
-      roles: ['ADMIN', 'STOCK_OFFICER', 'SALES_REP'], // Sales related roles
-    },
-    {
-      icon: '📈',
-      label: 'Reports',
-      active: false,
-      badge: null,
-      routerLink: '/reports',
-      roles: ['ADMIN', 'MANAGER'], // Admin and Manager only
-    },
-    {
-      icon: '⚙️',
-      label: 'Settings',
-      active: false,
-      badge: null,
-      routerLink: '/settings',
-      roles: ['ADMIN'], // Admin only
+      roles: ['ADMIN', 'SALES_OFFICER'],
     },
     {
       icon: '👤',
       label: 'Users',
       active: false,
       badge: null,
-      routerLink: '/users',
-      roles: ['ADMIN'], // Admin only
+      routerLink: '/usermanagement/list',
+      roles: ['ADMIN'],
     },
+    // {
+    //   icon: '📈',
+    //   label: 'Reports',
+    //   active: false,
+    //   badge: null,
+    //   routerLink: '/reports',
+    //   roles: ['ADMIN', 'MANAGER'], // Admin and Manager only
+    // },
+    // {
+    //   icon: '⚙️',
+    //   label: 'Settings',
+    //   active: false,
+    //   badge: null,
+    //   routerLink: '/settings',
+    //   roles: ['ADMIN'], // Admin only
+    // },
   ];
 
   // Filtered menu items based on user role
@@ -90,10 +90,12 @@ export class Sidebar implements OnInit, OnDestroy {
 
   pendingApprovals: number = 0;
   pendingOrders: number = 0;
+  pendingSalesApprovals: number = 0;
 
   constructor(
     private authService: AuthService,
-    private purchaseOrderService: PurchaseOrderService
+    private purchaseOrderService: PurchaseOrderService,
+    private salesOrderService: SalesOrderService
   ) {}
 
   ngOnInit() {
@@ -179,6 +181,37 @@ export class Sidebar implements OnInit, OnDestroy {
                 this.pendingApprovals > 0 ? this.pendingApprovals.toString() : null;
             }
           }
+        },
+      });
+      // Load pending sales approvals count for admin (Sales Orders)
+      this.salesOrderService.getSalesOrders().subscribe({
+        next: (response: any) => {
+          console.log('Sales Orders Response:', response); // Debug log
+          if (response && response.data) {
+            const salesOrders = response.data;
+            this.pendingSalesApprovals = salesOrders.filter(
+              (order: any) => order.status === 'SUBMITTED'
+            ).length;
+
+            console.log('Pending Sales Order Approvals:', this.pendingSalesApprovals); // Debug log
+
+            // Update badge for Sales Orders menu item
+            const soMenuItem = this.menuItems.find(
+              (item) => item.routerLink === '/sales-orders/list'
+            );
+            if (soMenuItem) {
+              soMenuItem.badge =
+                this.pendingSalesApprovals > 0 ? this.pendingSalesApprovals.toString() : null;
+              console.log('Sales Order Badge Set:', soMenuItem.badge); // Debug log
+            } else {
+              console.warn('Sales Order menu item not found'); // Debug log
+            }
+          } else {
+            console.warn('No sales orders data in response'); // Debug log
+          }
+        },
+        error: (error) => {
+          console.error('Error loading sales order badges:', error);
         },
       });
     }

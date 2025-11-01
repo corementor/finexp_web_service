@@ -44,6 +44,21 @@ export class UserService {
   }
 
   deleteUser(user: UserDTO): Observable<any> {
-    return this.http.post(`${API_USER_URL}/delete`, { body: user, observe: 'response' });
+    console.log('user to delete: ', user);
+    return this.http.delete(`${API_USER_URL}/delete/${user.id}`, { observe: 'response' });
+  }
+
+  // getUserById(userId: String): Observable<any> {
+  //   return this.http.get(`${API_USER_URL}/search/criteria/${userId}`);
+  // }
+
+  getUserById(userId: string): Observable<UserDTO> {
+    return this.http.get<Response>(`${API_USER_URL}/search/criteria/${userId}`).pipe(
+      map((response) => this.genericDeserializer.deserializeJson(response.data, UserDTO)),
+      catchError((error) => {
+        console.error('Error fetching user:', error);
+        return throwError(() => new Error('Failed to fetch user'));
+      })
+    );
   }
 }

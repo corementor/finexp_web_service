@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UserDTO } from '../../../../common/dto/usermanagement/user-dto';
 import { RoleDTO } from '../../../../common/dto/usermanagement/role-dto';
 import { UserService } from '../user-service/user-service';
 import { ToasterService } from '../../../../services/toaster.service';
+import { AuthService } from '../../security/service/auth-service';
 
 @Component({
   selector: 'app-view-user',
@@ -16,6 +17,7 @@ import { ToasterService } from '../../../../services/toaster.service';
 })
 export class ViewUser implements OnInit {
   user?: UserDTO;
+  userId: string = '';
   availableRoles: RoleDTO[] = [];
   selectedRoleIds: string[] = [];
   isEditing = false;
@@ -25,25 +27,47 @@ export class ViewUser implements OnInit {
   confirmPassword = '';
   showDeleteModal = false;
   isDeleting = false;
+  isLoading = false;
 
   constructor(
     private userService: UserService,
     private router: Router,
-    private toaster: ToasterService
-  ) {
-    const navigation = this.router.getCurrentNavigation();
-    this.user = navigation?.extras?.state?.['user'];
-  }
+    private route: ActivatedRoute,
+    private toaster: ToasterService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
-    if (!this.user) {
-      this.toaster.warning('Navigation Error', 'No user data found. Redirecting to list...');
-      this.router.navigate(['/usermanagement/list']);
-      return;
-    }
-    this.loadRoles();
-    // Initialize selected role IDs
-    this.selectedRoleIds = this.user.role?.map((r) => r.id!).filter((id) => id) || [];
+    // Get user ID from route parameters
+    this.route.params.subscribe((params) => {
+      this.userId = params['id'];
+      if (this.userId) {
+        this.loadUser();
+        this.loadRoles();
+      } else {
+        this.toaster.warning('Navigation Error', 'No user ID provided. Redirecting to list...');
+        this.router.navigate(['/usermanagement/list']);
+      }
+    });
+  }
+
+  loadUser() {
+    this.isLoading = true;
+    this.userService.getUserById(this.userId).subscribe({
+      next: (user) => {
+        this.user = user;
+        this.isLoading = false;
+        // Initialize selected role IDs
+        this.selectedRoleIds = this.user.role?.map((r) => r.id!).filter((id) => id) || [];
+        console.log('User loaded successfully:', this.user);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error loading user:', error);
+        this.toaster.error('Error', 'Failed to load user details');
+        this.router.navigate(['/usermanagement/list']);
+      },
+    });
   }
 
   loadRoles() {
@@ -61,8 +85,8 @@ export class ViewUser implements OnInit {
   toggleEdit() {
     this.isEditing = !this.isEditing;
     if (!this.isEditing) {
-      // Reset to original data
-      this.selectedRoleIds = this.user?.role?.map((r) => r.id!).filter((id) => id) || [];
+      // Reset to original data by reloading
+      this.loadUser();
       this.newPassword = '';
       this.confirmPassword = '';
       this.toaster.info('Edit Cancelled', 'Changes discarded');
@@ -189,6 +213,8 @@ export class ViewUser implements OnInit {
       this.user.password = this.newPassword;
     }
 
+    this.user.modifiedBy = this.authService.getCurrentUser()?.fullName;
+
     this.userService.updateUser(this.user).subscribe({
       next: (response) => {
         this.isSubmitting = false;
@@ -197,6 +223,8 @@ export class ViewUser implements OnInit {
           this.isEditing = false;
           this.newPassword = '';
           this.confirmPassword = '';
+          // Reload user to get fresh data
+          this.loadUser();
         } else {
           this.toaster.error('Error', response.body?.message || 'Failed to update user');
         }

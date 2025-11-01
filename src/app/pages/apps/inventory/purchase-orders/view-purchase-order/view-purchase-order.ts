@@ -764,4 +764,14 @@ export class ViewPurchaseOrder implements OnInit {
         this.order?.status === EOrderHistoryStatus.RETURNED)
     );
   }
+
+  canEditItemRow(): boolean {
+    if (
+      this.order?.status === EOrderHistoryStatus.CREATED ||
+      this.order?.status === EOrderHistoryStatus.RETURNED
+    ) {
+      return true;
+    }
+    return false;
+  }
 }

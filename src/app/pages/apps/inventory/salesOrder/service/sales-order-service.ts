@@ -23,16 +23,20 @@ export class SalesOrderService {
   createSalesOrder(salesOrder: SalesOrderDTO): Observable<any> {
     return this.http.post(`${this.apiUrl}/create`, salesOrder, { observe: 'response' });
   }
-  getSalesOrders(): Observable<SalesOrderDTO[]> {
-    return this.http.get<Response>(`${this.apiUrl}/search/criteria/all`).pipe(
-      map((response) =>
-        this.genericDeserializer.deserializeJsonArray(response.data, SalesOrderDTO)
-      ),
-      catchError((error) => {
-        console.error('Error fetching sales orders:', error);
-        return throwError(() => new Error('Failed to fetch sales orders'));
-      })
-    );
+
+  /**
+   * Get all sales orders
+   */
+  getSalesOrders(): Observable<any> {
+    return this.http
+      .get<any>(`${API_SALES_ORDER_URL}/search/criteria/all`, { observe: 'response' })
+      .pipe(
+        map((response: HttpResponse<any>) => response.body),
+        catchError((error) => {
+          console.error('Error fetching sales orders:', error);
+          return throwError(() => new Error('Failed to fetch sales orders'));
+        })
+      );
   }
   getSalesOrderById(id: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/${id}`);

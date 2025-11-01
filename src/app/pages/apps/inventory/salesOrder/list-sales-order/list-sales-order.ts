@@ -31,7 +31,6 @@ export class ListSalesOrder implements OnInit {
   sortDirection: 'asc' | 'desc' = 'desc';
   dateFilter: string = '';
   openDropdownIndex: number | null = null;
-
   showDeleteModal = false;
   orderToDelete?: SalesOrderDTO;
   constructor(
@@ -76,7 +75,7 @@ export class ListSalesOrder implements OnInit {
     this.isLoading = true;
     this.salesOrderService.getSalesOrders().subscribe({
       next: (response) => {
-        this.salesOrderList = response;
+        this.salesOrderList = response.data;
         this.isLoading = false;
         this.toaster.success(
           'Sales Orders',

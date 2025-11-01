@@ -96,6 +96,22 @@ export const routes: Routes = [
             (m) => m.ViewSalesOrder
           ),
       },
+
+      {
+        path: 'usermanagement/list',
+        loadComponent: () =>
+          import('./pages/apps/usermanagement/list-user/list-user').then((m) => m.ListUser),
+      },
+      {
+        path: 'usermanagement/create-user',
+        loadComponent: () =>
+          import('./pages/apps/usermanagement/create-user/create-user').then((m) => m.CreateUser),
+      },
+      {
+        path: 'usermanagement/view-user/:id',
+        loadComponent: () =>
+          import('./pages/apps/usermanagement/view-user/view-user').then((m) => m.ViewUser),
+      },
     ],
   },
 

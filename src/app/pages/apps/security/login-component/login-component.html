@@ -10,7 +10,7 @@
 
     <!-- Login Form -->
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-      <div class="px-8 py-10">
+      <div class="px-8 py-7">
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
           <!-- Email Field -->
           <div>
@@ -39,7 +39,7 @@
                 type="email"
                 formControlName="email"
                 autocomplete="email"
-                class="form-input block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                class="form-input block placeholder-gray-500 w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                 [class.border-red-300]="
                   loginForm.get('email')?.touched && loginForm.get('email')?.errors
                 "
@@ -87,7 +87,7 @@
                 [type]="showPassword ? 'text' : 'password'"
                 formControlName="password"
                 autocomplete="current-password"
-                class="form-input block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                class="form-input block w-full placeholder-gray-500 pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                 [class.border-red-300]="
                   loginForm.get('password')?.touched && loginForm.get('password')?.errors
                 "
@@ -218,7 +218,7 @@
       </div>
 
       <!-- Sign Up Link -->
-      <div class="px-5 py-4 bg-gray-50 border-t border-gray-100">
+      <div class="px-2 py-2 bg-gray-50 border-t border-gray-100">
         <p class="text-center text-sm text-gray-600">
           Don't have an account? Contact Administrator
         </p>

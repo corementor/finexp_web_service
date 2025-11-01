@@ -167,6 +167,8 @@
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-medium text-gray-900">Ordered Items</h3>
           <button
+            +
+            *ngIf="canEditItemRow()"
             (click)="addNewItem()"
             class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
           >
@@ -267,6 +269,7 @@
                   Total price with Tax
                 </th>
                 <th
+                  *ngIf="canEditItemRow()"
                   scope="col"
                   class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
@@ -316,7 +319,10 @@
                   </td>
 
                   <!-- In the actions column of the table -->
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td
+                    *ngIf="canEditItemRow()"
+                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                  >
                     <!-- Edit Button -->
                     <button
                       (click)="startInlineEdit(i, item)"
@@ -811,7 +817,6 @@
           <p class="text-sm text-gray-500">
             Are you sure you want to delete this product order item?
           </p>
-          <!-- Product Details -->
           <div class="mt-4 bg-gray-50 p-3 rounded-lg text-left">
             <p class="text-sm font-medium text-gray-900">{{ productToDelete?.productName }}</p>
             <p class="text-xs text-gray-500 mt-1">
