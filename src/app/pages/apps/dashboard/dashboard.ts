@@ -18,7 +18,7 @@ export class Dashboard implements OnInit {
   // Computed stats from API data
   get stats() {
     return {
-      totalPurchaseOrders: this.dashboardReport?.purchaseOrderReportDto?.totalPurchaseOrders || 0,
+      totalPurchaseOrders: this.dashboardReport?.purchaseOrderReport?.totalPurchaseOrders || 0,
       totalSalesOrders: this.dashboardReport?.salesOrderReportDto?.totalSalesOrders || 0,
       totalProductTypes: this.dashboardReport?.totalProductTypes || 0,
       totalUsers: this.dashboardReport?.totalUsers || 0,
@@ -27,21 +27,27 @@ export class Dashboard implements OnInit {
 
   // Purchase Order breakdown
   get purchaseOrderStats() {
+    const poReport = this.dashboardReport?.purchaseOrderReport; // Changed here
+    console.log('Purchase Order Report:', poReport); // Debug log
+
     return {
-      created: this.dashboardReport?.purchaseOrderReportDto?.totalCreated || 0,
-      submitted: this.dashboardReport?.purchaseOrderReportDto?.totalSubmitted || 0,
-      approved: this.dashboardReport?.purchaseOrderReportDto?.totalApproved || 0,
-      returned: this.dashboardReport?.purchaseOrderReportDto?.totalReturned || 0,
+      created: poReport?.totalCreated || 0,
+      submitted: poReport?.totalSubmitted || 0,
+      approved: poReport?.totalApproved || 0,
+      returned: poReport?.totalReturned || 0,
     };
   }
 
   // Sales Order breakdown
   get salesOrderStats() {
+    const soReport = this.dashboardReport?.salesOrderReportDto;
+    console.log('Sales Order Report:', soReport); // Debug log
+
     return {
-      created: this.dashboardReport?.salesOrderReportDto?.totalCreated || 0,
-      submitted: this.dashboardReport?.salesOrderReportDto?.totalSubmitted || 0,
-      approved: this.dashboardReport?.salesOrderReportDto?.totalApproved || 0,
-      returned: this.dashboardReport?.salesOrderReportDto?.totalReturned || 0,
+      created: soReport?.totalCreated || 0,
+      submitted: soReport?.totalSubmitted || 0,
+      approved: soReport?.totalApproved || 0,
+      returned: soReport?.totalReturned || 0,
     };
   }
 
@@ -58,6 +64,8 @@ export class Dashboard implements OnInit {
         this.dashboardReport = report;
         this.isLoading = false;
         console.log('Dashboard Report Loaded:', report);
+        console.log('Purchase Order Report:', report.purchaseOrderReport); // Changed here
+        console.log('Sales Order Report:', report.salesOrderReportDto);
       },
       error: (error) => {
         this.isLoading = false;
