@@ -148,7 +148,7 @@
 
   <!-- Purchase Orders List -->
   <div *ngIf="!isLoading" class="bg-white rounded-lg shadow overflow-hidden">
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto overflow-y-visible">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -274,7 +274,11 @@
                 <!-- Dropdown Menu -->
                 <div
                   *ngIf="openDropdownIndex === i"
-                  class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+                  [class]="
+                    openDropdownIndex === i && i >= paginatedOrders.length - 3
+                      ? 'origin-bottom-right absolute right-0 bottom-full mb-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50'
+                      : 'origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50'
+                  "
                 >
                   <div class="py-1">
                     <!-- View Details -->
