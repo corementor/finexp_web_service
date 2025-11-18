@@ -68,6 +68,14 @@ export const routes: Routes = [
           ).then((m) => m.PurchaseOrderHistory),
       },
       {
+        path: 'sales-orders/sales-order-history/:id',
+        loadComponent: () =>
+          import('./pages/apps/inventory/salesOrder/sales-order-history/sales-order-history').then(
+            (m) => m.SalesOrderHistory
+          ),
+      },
+
+      {
         path: 'sales-orders/list',
         loadComponent: () =>
           import('./pages/apps/inventory/salesOrder/list-sales-order/list-sales-order').then(
@@ -87,6 +95,22 @@ export const routes: Routes = [
           import('./pages/apps/inventory/salesOrder/view-sales-order/view-sales-order').then(
             (m) => m.ViewSalesOrder
           ),
+      },
+
+      {
+        path: 'usermanagement/list',
+        loadComponent: () =>
+          import('./pages/apps/usermanagement/list-user/list-user').then((m) => m.ListUser),
+      },
+      {
+        path: 'usermanagement/create-user',
+        loadComponent: () =>
+          import('./pages/apps/usermanagement/create-user/create-user').then((m) => m.CreateUser),
+      },
+      {
+        path: 'usermanagement/view-user/:id',
+        loadComponent: () =>
+          import('./pages/apps/usermanagement/view-user/view-user').then((m) => m.ViewUser),
       },
     ],
   },

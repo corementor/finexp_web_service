@@ -1,9 +1,9 @@
 import { AbstractBaseDto } from '../util/abstract-base-dto';
 import { EOrderHistoryStatus } from '../util/e-order-history-status';
-import { PurchaseOrderDto } from './purchase-order-dto';
+import { SalesOrderDTO } from './sales-order-dto';
 
-export class PurchaseOrderHistoryDto extends AbstractBaseDto {
-  purchaseOrder?: PurchaseOrderDto;
+export class SalesOrderHistoryDto extends AbstractBaseDto {
+  salesOrder?: SalesOrderDTO;
   status?: EOrderHistoryStatus;
   comment?: string;
 }

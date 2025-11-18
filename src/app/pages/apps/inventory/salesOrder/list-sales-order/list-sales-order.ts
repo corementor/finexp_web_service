@@ -30,7 +30,9 @@ export class ListSalesOrder implements OnInit {
   sortColumn: string = 'saleDate';
   sortDirection: 'asc' | 'desc' = 'desc';
   dateFilter: string = '';
-
+  openDropdownIndex: number | null = null;
+  showDeleteModal = false;
+  orderToDelete?: SalesOrderDTO;
   constructor(
     private router: Router,
     private salesOrderService: SalesOrderService,
@@ -47,11 +49,33 @@ export class ListSalesOrder implements OnInit {
   viewOrderDetails(order: SalesOrderDTO) {
     this.router.navigate(['/sales-orders/view-sales-order'], { state: { order: order } });
   }
+
+  viewOrderHistory(order: SalesOrderDTO) {
+    this.openDropdownIndex = null; // Close dropdown
+    this.router.navigate(['/sales-orders/sales-order-history', order.id]);
+  }
+  toggleDropdown(index: number) {
+    this.openDropdownIndex = this.openDropdownIndex === index ? null : index;
+  }
+
+  closeDropdown() {
+    this.openDropdownIndex = null;
+  }
+  deleteSalesOrder(order: SalesOrderDTO) {
+    this.openDropdownIndex = null; // Close dropdown
+    this.orderToDelete = order;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.orderToDelete = undefined;
+  }
   loadSalesOrders() {
     this.isLoading = true;
     this.salesOrderService.getSalesOrders().subscribe({
       next: (response) => {
-        this.salesOrderList = response;
+        this.salesOrderList = response.data;
         this.isLoading = false;
         this.toaster.success(
           'Sales Orders',
@@ -131,6 +155,9 @@ export class ListSalesOrder implements OnInit {
         case 'totalPrice':
           comparison = (a.totalPrice || 0) - (b.totalPrice || 0);
           break;
+        case 'status':
+          comparison = (a.status || '').toString().localeCompare((b.status || '').toString());
+          break;
       }
       return this.sortDirection === 'asc' ? comparison : -comparison;
     });
@@ -166,5 +193,31 @@ export class ListSalesOrder implements OnInit {
     this.dateFilter = '';
     this.currentPage = 1;
     this.toaster.info('Filters Cleared', 'All filters have been reset');
+  }
+
+  confirmDeleteSalesOrder() {
+    if (!this.orderToDelete?.id) {
+      this.toaster.error('Delete Error', 'Invalid sales order');
+      return;
+    }
+
+    this.salesOrderService.deleteSalesOrder(this.orderToDelete).subscribe({
+      next: (response) => {
+        if (response.status >= 200 && response.status < 300) {
+          this.toaster.success(
+            'Deleted',
+            `Sales order "${this.orderToDelete?.saleCode}" deleted successfully`
+          );
+          this.closeDeleteModal();
+          this.loadSalesOrders();
+        } else {
+          this.toaster.error('Error', 'Failed to delete sales order');
+        }
+      },
+      error: (error) => {
+        this.toaster.error('Error', 'Failed to delete sales order');
+        console.error('Error deleting sales order:', error);
+      },
+    });
   }
 }

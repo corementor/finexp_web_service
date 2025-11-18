@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DashboardService } from './service/dashboard-service';
+import { DashboardReportDto } from '../../../common/dto/report/dasboard-report-dto';
+import { ToasterService } from '../../../services/toaster.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -8,90 +11,78 @@ import { RouterLink } from '@angular/router';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard {
-  stats = {
-    totalValue: 245680,
-    totalItems: 1234,
-    lowStock: 8,
-    monthlyRevenue: 89420,
-  };
+export class Dashboard implements OnInit {
+  dashboardReport?: DashboardReportDto;
+  isLoading = false;
 
-  recentTransactions = [
-    {
-      id: 1,
-      product: 'iPhone 15 Pro',
-      type: 'Stock In',
-      quantity: 20,
-      amount: 19999,
-      time: '2 hours ago',
-      isPositive: true,
-    },
-    {
-      id: 2,
-      product: 'MacBook Pro M3',
-      type: 'Sale',
-      quantity: 3,
-      amount: 5997,
-      time: '5 hours ago',
-      isPositive: false,
-    },
-    {
-      id: 3,
-      product: 'Purchase Order #PO-2024-145',
-      type: 'Received',
-      quantity: 0,
-      amount: 45000,
-      time: '1 day ago',
-      isPositive: true,
-    },
-  ];
+  // Computed stats from API data
+  get stats() {
+    return {
+      totalPurchaseOrders: this.dashboardReport?.purchaseOrderReport?.totalPurchaseOrders || 0,
+      totalSalesOrders: this.dashboardReport?.salesOrderReportDto?.totalSalesOrders || 0,
+      totalProductTypes: this.dashboardReport?.totalProductTypes || 0,
+      totalUsers: this.dashboardReport?.totalUsers || 0,
+    };
+  }
 
-  lowStockItems = [
-    { name: 'iPhone 15 Pro Max', sku: 'IP15PM-256-BLK', current: 5, minimum: 20 },
-    { name: 'AirPods Pro 2', sku: 'APP2-WHT', current: 12, minimum: 30 },
-    { name: 'iPad Air M2', sku: 'IPA-M2-128-GRY', current: 8, minimum: 15 },
-  ];
+  // Purchase Order breakdown
+  get purchaseOrderStats() {
+    const poReport = this.dashboardReport?.purchaseOrderReport; // Changed here
+    console.log('Purchase Order Report:', poReport); // Debug log
 
-  topProducts = [
-    {
-      name: 'iPhone 15 Pro',
-      sku: 'IP15P-128-BLK',
-      stock: 87,
-      sold: 143,
-      revenue: 142857,
-      status: 'In Stock',
-    },
-    {
-      name: 'MacBook Air M2',
-      sku: 'MBA-M2-256-SLV',
-      stock: 34,
-      sold: 89,
-      revenue: 106710,
-      status: 'In Stock',
-    },
-    {
-      name: 'AirPods Pro 2',
-      sku: 'APP2-WHT',
-      stock: 12,
-      sold: 267,
-      revenue: 66483,
-      status: 'Low Stock',
-    },
-    {
-      name: 'Apple Watch Series 9',
-      sku: 'AWS9-45-BLK',
-      stock: 56,
-      sold: 178,
-      revenue: 71022,
-      status: 'In Stock',
-    },
-    {
-      name: 'iPad Pro 12.9" M2',
-      sku: 'IPP-M2-256-SG',
-      stock: 23,
-      sold: 67,
-      revenue: 73263,
-      status: 'In Stock',
-    },
-  ];
+    return {
+      created: poReport?.totalCreated || 0,
+      submitted: poReport?.totalSubmitted || 0,
+      approved: poReport?.totalApproved || 0,
+      returned: poReport?.totalReturned || 0,
+    };
+  }
+
+  // Sales Order breakdown
+  get salesOrderStats() {
+    const soReport = this.dashboardReport?.salesOrderReportDto;
+    console.log('Sales Order Report:', soReport); // Debug log
+
+    return {
+      created: soReport?.totalCreated || 0,
+      submitted: soReport?.totalSubmitted || 0,
+      approved: soReport?.totalApproved || 0,
+      returned: soReport?.totalReturned || 0,
+    };
+  }
+
+  constructor(private dashboardService: DashboardService, private toaster: ToasterService) {}
+
+  ngOnInit() {
+    this.loadDashboardData();
+  }
+
+  loadDashboardData() {
+    this.isLoading = true;
+    this.dashboardService.getDashboardReport().subscribe({
+      next: (report) => {
+        this.dashboardReport = report;
+        this.isLoading = false;
+        console.log('Dashboard Report Loaded:', report);
+        console.log('Purchase Order Report:', report.purchaseOrderReport); // Changed here
+        console.log('Sales Order Report:', report.salesOrderReportDto);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error loading dashboard data:', error);
+        this.toaster.error('Error', 'Failed to load dashboard data');
+      },
+    });
+  }
+
+  getStatusPercentage(value: number, total: number): number {
+    return total > 0 ? Math.round((value / total) * 100) : 0;
+  }
+
+  getCurrentTime(): string {
+    return new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
 }
