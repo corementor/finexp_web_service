@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { DashboardService } from './service/dashboard-service';
 import { DashboardReportDto } from '../../../common/dto/report/dasboard-report-dto';
 import { ToasterService } from '../../../services/toaster.service';
+import { AuthService } from '../security/service/auth-service';
 
 @Component({
   selector: 'app-dashboard',
@@ -51,10 +52,22 @@ export class Dashboard implements OnInit {
     };
   }
 
-  constructor(private dashboardService: DashboardService, private toaster: ToasterService) {}
+  constructor(
+    private dashboardService: DashboardService,
+    private toaster: ToasterService,
+
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
+    this.authService.currentUser$.subscribe((user) => {
+      console.log('Current User:', user);
+    });
     this.loadDashboardData();
+  }
+  loadRole(): string {
+    const user = this.authService.getCurrentUser();
+    return user?.role || '';
   }
 
   loadDashboardData() {

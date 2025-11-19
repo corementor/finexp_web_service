@@ -38,6 +38,7 @@
       <!-- Total Purchase Orders -->
       <div
         class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-l-4 border-blue-500"
+        *ngIf="loadRole() == 'ADMIN' || loadRole() == 'MANAGER'"
       >
         <div class="flex items-center justify-between mb-4">
           <div class="p-3 bg-blue-50 rounded-lg">
@@ -60,6 +61,7 @@
       <!-- Total Sales Orders -->
       <div
         class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-l-4 border-green-500"
+        *ngIf="loadRole() == 'ADMIN' || loadRole() == 'SALES_OFFICER'"
       >
         <div class="flex items-center justify-between mb-4">
           <div class="p-3 bg-green-50 rounded-lg">
@@ -82,6 +84,7 @@
       <!-- Total Product Types -->
       <div
         class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-l-4 border-purple-500"
+        *ngIf="loadRole() == 'ADMIN' || loadRole() == 'MANAGER'"
       >
         <div class="flex items-center justify-between mb-4">
           <div class="p-3 bg-purple-50 rounded-lg">
@@ -103,6 +106,7 @@
       <!-- Total Users -->
       <div
         class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-l-4 border-orange-500"
+        *ngIf="loadRole() == 'ADMIN'"
       >
         <div class="flex items-center justify-between mb-4">
           <div class="p-3 bg-orange-50 rounded-lg">
@@ -125,7 +129,10 @@
     <!-- Order Status Overview -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       <!-- Purchase Orders Breakdown -->
-      <div class="bg-white rounded-lg shadow-md p-6">
+      <div
+        class="bg-white rounded-lg shadow-md p-6"
+        *ngIf="loadRole() == 'ADMIN' || loadRole() == 'STOCK_OFFICER'"
+      >
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-bold text-gray-800">Purchase Orders Status</h2>
           <a
@@ -240,7 +247,10 @@
       </div>
 
       <!-- Sales Orders Breakdown -->
-      <div class="bg-white rounded-lg shadow-md p-6">
+      <div
+        class="bg-white rounded-lg shadow-md p-6"
+        *ngIf="loadRole() == 'ADMIN' || loadRole() == 'SALES_OFFICER'"
+      >
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-bold text-gray-800">Sales Orders Status</h2>
           <a
@@ -361,6 +371,7 @@
         <button
           [routerLink]="['/purchase-orders/create-purchase-orders']"
           class="flex flex-col items-center justify-center p-6 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all"
+          *ngIf="loadRole() == 'ADMIN' || loadRole() == 'STOCK_OFFICER'"
         >
           <div class="mb-3 p-3 bg-blue-100 rounded-lg">
             <span class="text-3xl">🛒</span>
@@ -372,6 +383,7 @@
         <button
           [routerLink]="['/sales-orders/create-sales-order']"
           class="flex flex-col items-center justify-center p-6 rounded-lg border-2 border-dashed border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all"
+          *ngIf="loadRole() == 'ADMIN' || loadRole() == 'SALES_OFFICER'"
         >
           <div class="mb-3 p-3 bg-green-100 rounded-lg">
             <span class="text-3xl">👥</span>
@@ -383,6 +395,7 @@
         <button
           [routerLink]="['/product-types']"
           class="flex flex-col items-center justify-center p-6 rounded-lg border-2 border-dashed border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all"
+          *ngIf="loadRole() == 'ADMIN' || loadRole() == 'MANAGER'"
         >
           <div class="mb-3 p-3 bg-purple-100 rounded-lg">
             <span class="text-3xl">📦</span>
@@ -394,6 +407,7 @@
         <button
           [routerLink]="['/usermanagement/list']"
           class="flex flex-col items-center justify-center p-6 rounded-lg border-2 border-dashed border-gray-300 hover:border-orange-500 hover:bg-orange-50 transition-all"
+          *ngIf="loadRole() == 'ADMIN'"
         >
           <div class="mb-3 p-3 bg-orange-100 rounded-lg">
             <span class="text-3xl">👤</span>

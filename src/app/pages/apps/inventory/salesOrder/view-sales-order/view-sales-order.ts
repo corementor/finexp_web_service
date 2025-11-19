@@ -711,12 +711,12 @@ export class ViewSalesOrder implements OnInit {
 
   canApproveOrReturn(): boolean {
     const currentUser = this.authService.getCurrentUser();
-    const isAdmin = currentUser?.role === 'ADMIN';
+    const isAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'MANAGER';
     return isAdmin && this.order?.status === EOrderHistoryStatus.SUBMITTED;
   }
   canEditOrder(): boolean {
     const currentUser = this.authService.getCurrentUser();
-    const isAdmin = currentUser?.role === 'ADMIN';
+    const isAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'MANAGER';
     return (
       isAdmin &&
       (this.order?.status === EOrderHistoryStatus.CREATED ||

@@ -49,15 +49,15 @@ export class Sidebar implements OnInit, OnDestroy {
       active: false,
       badge: null,
       routerLink: '/purchase-orders/list',
-      roles: ['ADMIN', 'STOCK_OFFICER'],
+      roles: ['ADMIN', 'STOCK_OFFICER', 'MANAGER'],
     },
     {
-      icon: '👥',
+      icon: '📦',
       label: 'Sales Orders',
       active: false,
       badge: null,
       routerLink: '/sales-orders/list',
-      roles: ['ADMIN', 'SALES_OFFICER'],
+      roles: ['ADMIN', 'SALES_OFFICER', 'MANAGER'],
     },
     {
       icon: '👤',
