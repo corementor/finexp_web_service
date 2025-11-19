@@ -33,7 +33,7 @@ export class Sidebar implements OnInit, OnDestroy {
       active: false,
       badge: null,
       routerLink: '/dashboard',
-      roles: ['ADMIN', 'STOCK_OFFICER', 'MANAGER', 'USER'],
+      roles: ['ADMIN', 'STOCK_OFFICER', 'MANAGER', 'SALES_OFFICER'],
     },
     {
       icon: '🗂️',
